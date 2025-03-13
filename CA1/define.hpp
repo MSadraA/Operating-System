@@ -28,8 +28,7 @@ using namespace std;
 
 #define MAX_CLIENTS 100
 
-// Ports
-#define TCP_PORT 8080
+// Server Ports
 #define UDP_PORT 8081
 
 // Error Messages

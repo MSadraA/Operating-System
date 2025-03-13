@@ -10,7 +10,7 @@ Server* globalServer = nullptr;
 
 void startServer() {
     try {
-        Server server;
+        Server server(8080);
         globalServer = &server;
         server.start();
     } catch (const std::exception& e) {
@@ -20,9 +20,9 @@ void startServer() {
 
 void startClient(const string& username, const string& role, int udp_port) {
     try {
-        Client client(username, role, udp_port);
-        client.sendClientInfo(); // ارسال اطلاعات کلاینت به سرور
-        this_thread::sleep_for(chrono::seconds(1)); // Wait for server to start
+        Client client(username, role, udp_port , globalServer->get_tcp_port());
+        client.sendClientInfo(); 
+        this_thread::sleep_for(chrono::seconds(1)); 
         string message = client.receiveUDPMessage();
         cout << "Received message: " << message << endl;
     } catch (const std::exception& e) {
@@ -36,11 +36,13 @@ int main() {
         thread serverThread(startServer);
 
         // Give the server some time to start
-        this_thread::sleep_for(chrono::seconds(1));
+        this_thread::sleep_for(chrono::seconds(2));
 
         // Start clients with different UDP ports
         thread clientThread1(startClient, "user1", "role1", 9091);
         thread clientThread2(startClient, "user2", "role2", 9092);
+        this_thread::sleep_for(chrono::seconds(1));
+
         cout << "Clients started" << endl;
 
         // Detach client threads

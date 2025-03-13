@@ -1,11 +1,7 @@
 #include "server.hpp"
-#include <iostream>
-#include <cstring>
-#include <arpa/inet.h>
-#include <unistd.h>
 
-Server::Server() : requestHandler(teams), running(true) {
-    // Constructor implementation
+Server::Server(int tcp_port_) : requestHandler(teams), running(true){
+    tcp_port = tcp_port_;
 }
 
 void Server::start() {
@@ -26,10 +22,11 @@ void Server::init_tcp() {
     }
 
     tcp_address.sin_family = AF_INET;
-    tcp_address.sin_port = htons(TCP_PORT);
-    inet_pton(AF_INET, SERVER_IP, &tcp_address.sin_addr);
+    tcp_address.sin_addr.s_addr = INADDR_ANY;
+    tcp_address.sin_port = htons(tcp_port);
 
     if (bind(tcp_socket, (struct sockaddr*)&tcp_address, sizeof(tcp_address)) == -1) {
+        perror("Bind error");
         throw runtime_error("Failed to bind TCP socket");
     }
 
@@ -49,6 +46,7 @@ void Server::init_udp() {
     udp_address.sin_port = htons(UDP_PORT);
 
     if (bind(udp_socket, (struct sockaddr*)&udp_address, sizeof(udp_address)) < 0) {
+        perror("Bind error");
         throw runtime_error("Failed to bind UDP socket");
     }
 }
@@ -67,16 +65,14 @@ void Server::accept_client() {
     client_poll.events = POLLIN;
     poll_fds.push_back(client_poll);
 
-    cout << "Client connected, waiting for info..." << endl;
+    // cout << "Client connected, waiting for info..." << endl;
+
+    handle_client(client_socket);
 }
 
 void Server::register_client(int client_socket, const std::string& username, const std::string& role, struct sockaddr_in addr) {
-    cout << "Register called" << endl;
     clients.push_back({client_socket, username, role, addr});
-    cout << "Registered client: " << username << " with role: " << role << endl;
-
-    string welcomeMsg = "✅ خوش‌آمدید به سرور!";
-    sendto(udp_socket, welcomeMsg.c_str(), welcomeMsg.size(), 0, (struct sockaddr*)&addr, sizeof(addr));
+    // cout << "New client : " << username;
 }
 
 void Server::remove_client(int client_socket) {
@@ -102,8 +98,6 @@ void Server::handle_client(int client_socket) {
 
     int bytes_received = recv(client_socket, buffer, sizeof(buffer), 0);
     if (bytes_received <= 0) {
-        throw runtime_error("Failed to receive data from client");
-        close(client_socket);
         remove_client(client_socket);
         return;
     }
@@ -139,8 +133,6 @@ void Server::run() {
 }
 
 void Server::stop() {
-    cout << "Stopping server" << endl;
-    cout << "Client size: " << clients.size() << endl;
     for (size_t i = 0; i < clients.size(); i++) {
         cout << clients[i].username << endl;
     }
@@ -161,6 +153,4 @@ void Server::message_broadcast(const std::string& message) {
     if (sendto(udp_socket, message.c_str(), message.size(), 0, (struct sockaddr*)&broadcast_addr, sizeof(broadcast_addr)) < 0) {
         throw runtime_error("Failed to send broadcast message");
     }
-
-    cout << "Broadcast message sent: " << message << endl;
 }

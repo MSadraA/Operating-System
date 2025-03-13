@@ -3,10 +3,9 @@
 
 #include "define.hpp"
 
-using namespace std;
-
 class Client {
 private:
+    int server_tcp_port;
     int tcp_socket;
     int udp_socket;
     struct sockaddr_in client_addr;
@@ -17,7 +16,7 @@ private:
     void init_udp();
 
 public:
-    Client(string uname, string r, int udp_port);
+    Client(string uname, string r, int udp_port , int server_tcp_port_);
     void sendClientInfo();
     string receiveUDPMessage();
     int getSocket() const { return tcp_socket; }
