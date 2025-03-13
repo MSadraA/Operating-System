@@ -2,6 +2,11 @@
 #define REQUEST_HANDLER_HPP
 
 #include "define.hpp"
+#include <map>
+#include <functional>
+#include <string>
+#include <stdexcept>
+
 using namespace std;
 
 class Request_handler {
@@ -10,12 +15,11 @@ private:
     map<int, int>& teams; 
 
 public:
-Request_handler(map<int, int>& teamsRef);
+    Request_handler(map<int, int>& teamsRef);
     void handleRequest(int client_fd, string request_type, string data);
 
 private:
     void handleConnect(int client_fd, string data);
-    void handleMessage(int client_fd, string data);
 };
 
-#endif
+#endif // REQUEST_HANDLER_HPP

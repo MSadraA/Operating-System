@@ -2,7 +2,6 @@
 
 Request_handler::Request_handler(map<int, int>& teamsRef) : teams(teamsRef) {
     handlers["connect"] = [&](int client_fd, string data) { handleConnect(client_fd, data); };
-    handlers["message"] = [&](int client_fd, string data) { handleMessage(client_fd, data); };
 }
 
 void Request_handler::handleRequest(int client_fd, string request_type, string data) {

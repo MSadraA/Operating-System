@@ -19,7 +19,7 @@
 #include <fcntl.h>
 #include <time.h>
 #include <sys/timerfd.h>
-// #include <iostream>
+#include <iostream>
 
 using namespace std;
 
@@ -47,7 +47,7 @@ using namespace std;
 
 // IP
 #define SERVER_IP "127.0.0.1"
-const char* BROADCAST_IP = "127.255.255.255";
+extern const char* BROADCAST_IP;
 
 // Requst Types
 #define REQUEST_CONNECT "connect"

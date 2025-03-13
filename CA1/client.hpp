@@ -7,15 +7,21 @@ using namespace std;
 
 class Client {
 private:
-    int tcp_socket, udp_socket;
-    struct sockaddr_in server_tcp_addr, client_udp_addr;
+    int tcp_socket;
+    int udp_socket;
+    struct sockaddr_in client_addr;
     string username;
     string role;
+    int udp_port;
     void init_tcp();
     void init_udp();
 
 public:
-    Client(string uname, string r);
+    Client(string uname, string r, int udp_port);
+    void sendClientInfo();
+    string receiveUDPMessage();
+    int getSocket() const { return tcp_socket; }
+    string getUsername() const { return username; }
     ~Client();
 };
 
