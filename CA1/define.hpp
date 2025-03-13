@@ -1,0 +1,63 @@
+#ifndef DEFINE_H
+#define DEFINE_H
+
+#include <netinet/in.h>
+#include <vector>
+#include <poll.h>
+#include <map>
+#include <stdexcept>
+#include <string>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <cstring>
+#include <algorithm>
+#include <stdexcept>
+#include <unistd.h>
+#include <cstring>
+#include <memory>
+#include <signal.h>
+#include <fcntl.h>
+#include <time.h>
+#include <sys/timerfd.h>
+// #include <iostream>
+
+using namespace std;
+
+#define STDIN 0
+#define STDOUT 1
+
+#define MAX_CLIENTS 100
+
+// Ports
+#define TCP_PORT 8080
+#define UDP_PORT 8081
+
+// Error Messages
+#define SOCKET_ERROR_MSG "Failed to create socket"
+#define BIND_ERROR_MSG "Failed to bind socket"
+#define LISTEN_ERROR_MSG "Failed to listen on socket"
+#define ACCEPT_ERROR_MSG "Failed to accept connection"
+#define RECV_ERROR_MSG "Failed to receive message"
+#define SEND_ERROR_MSG "Failed to send message"
+#define CONNECT_ERROR_MSG "Failed to connect"
+#define BROADCAST_ERROR_MSG "Failed to enable broadcast on UDP"
+
+// Buffer 
+#define BUFFER_SIZE 1024
+
+// IP
+#define SERVER_IP "127.0.0.1"
+const char* BROADCAST_IP = "127.255.255.255";
+
+// Requst Types
+#define REQUEST_CONNECT "connect"
+#define REQUEST_MESSAGE "message"
+#define REQUEST_GET_PROBLEM "get_problem"
+#define REQUEST_SEND_SOLUTION "send_solution"
+
+// Request Errors
+#define REQUEST_ERROR_INVALID "invalid_request"
+#define REQUEST_ERROR_NOT_FOUND "not_found"
+#define REQUEST_ERROR_INVALID_PARAMS "invalid_params"
+
+#endif
