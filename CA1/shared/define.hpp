@@ -64,4 +64,11 @@ extern const char* BROADCAST_IP;
 #define REQUEST_ERROR_NOT_FOUND "not_found"
 #define REQUEST_ERROR_INVALID_PARAMS "invalid_params"
 
+// Player type
+#define CODER "coder"
+#define NAVIGATOR "navigator"
+
+// Server request type
+#define REG "register"
+
 #endif

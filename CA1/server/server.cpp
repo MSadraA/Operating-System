@@ -1,8 +1,7 @@
 #include "server.hpp"
 
-Server::Server(int tcp_port_) : requestHandler(teams), running(true){
-    tcp_port = tcp_port_;
-}
+Server::Server(int tcp_port_) : tcp_port(tcp_port_), requestHandler(*this), running(true) {}
+
 
 void Server::start() {
     tcp_socket.create_tcp_server(tcp_port);
@@ -17,8 +16,9 @@ void Server::accept_client() {
 }
 
 void Server::register_client(int client_socket, const std::string& username, const std::string& role,
-    const std::string& udp_port , struct sockaddr_in udp_address) {
-    clients.push_back({stoi(udp_port) , client_socket, username, role, udp_address});
+    const std::string& udp_port , struct sockaddr_in udp_address , bool has_team_) {
+    clients.push_back({stoi(udp_port) , client_socket, username, role, udp_address , has_team_});
+    make_teames();
     // udp_socket.unicast_message("hello!" , udp_address);
     // cout << "New client : " << username << " Port : " << udp_port << " int port : " << stoi(udp_port) << endl;
 }
@@ -39,21 +39,7 @@ void Server::handle_client(int client_socket) {
         return;
     }
     
-    vector<string> args;
-    args = splitString(client_info , DELIM);
-
-    struct sockaddr_in address;
-    socklen_t client_len = sizeof(address);
-    getpeername(client_socket, (struct sockaddr*)&address, &client_len);
-    
-    // for (auto arg : args)
-    // cout << arg << endl;
-    
-    struct sockaddr_in client_udp_address;
-    inet_pton(AF_INET, args[3].c_str(), &(client_udp_address.sin_addr));
-    client_udp_address.sin_family = AF_INET;
-    client_udp_address.sin_port = htons(stoi(args[2]));
-    register_client(client_socket, args[0], args[1] , args[2] , client_udp_address);
+    requestHandler.handleRequest(client_socket , REG , client_info);
 }
 
 void Server::run() {
@@ -98,3 +84,22 @@ bool Server::is_name_unique(string uname){
     }
     return true;
 }
+
+void Server::make_teames(){
+    ClientInfo& new_client = clients.back();
+    string role = new_client.role;
+    for(auto& client : clients){
+        if(!client.has_team){
+            if((role == CODER && client.role == NAVIGATOR) ||(role == NAVIGATOR && client.role == CODER))
+            {
+                client.has_team = true;
+                new_client.has_team = true;
+                teams.push_back(make_pair(client , new_client));
+                udp_socket.unicast_message("A teammate has been found for you !" , client.client_udp_address);
+                udp_socket.unicast_message("A teammate has been found for you !" , new_client.client_udp_address);
+            }
+        }
+    }
+       
+}
+
