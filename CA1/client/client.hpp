@@ -2,25 +2,33 @@
 #define CLIENT_HPP
 
 #include "define.hpp"
+#include "tcp_socket.hpp"
+#include "udp_socket.hpp"
+#include "shared_functions.hpp"
+#include "port_manager.hpp"
+
 
 class Client {
 private:
     int server_tcp_port;
-    int tcp_socket;
-    int udp_socket;
-    struct sockaddr_in client_addr;
+
+    bool running;
+    
     string username;
     string role;
     int udp_port;
-    void init_tcp();
+
+    Tcp_socket tcp_socket;
+    Udp_socket udp_socket;
+
     void init_udp();
 
 public:
     Client(string uname, string r, int udp_port , int server_tcp_port_);
+    void start();
+    void run();
+    void stop();
     void sendClientInfo();
-    string receiveUDPMessage();
-    int getSocket() const { return tcp_socket; }
-    string getUsername() const { return username; }
     ~Client();
 };
 

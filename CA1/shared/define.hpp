@@ -28,8 +28,10 @@ using namespace std;
 
 #define MAX_CLIENTS 100
 
-// Server Ports
-#define UDP_PORT 8081
+// Server Broadcast
+#define UDP_PORT_SERVER 8081
+#define BROAD_CAST_IP "255.255.255.255"
+
 
 // Error Messages
 #define SOCKET_ERROR_MSG "Failed to create socket"
@@ -43,6 +45,9 @@ using namespace std;
 
 // Buffer 
 #define BUFFER_SIZE 1024
+
+// Delimiter
+#define DELIM ':'
 
 // IP
 #define SERVER_IP "127.0.0.1"
