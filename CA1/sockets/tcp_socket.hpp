@@ -23,6 +23,8 @@ public:
     bool check_events();
     void close_socket();
 
+    int get_fd() {return tcp_socket;};
+
     struct sockaddr_in get_address() {return address;};
 };
 

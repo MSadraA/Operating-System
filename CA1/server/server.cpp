@@ -1,13 +1,10 @@
 #include "server.hpp"
 
-Server::Server(int tcp_port_) : tcp_port(tcp_port_), requestHandler(*this), running(true) {}
-
-
-void Server::start() {
+Server::Server(int tcp_port_) : tcp_port(tcp_port_), requestHandler(*this), running(false) {
     tcp_socket.create_tcp_server(tcp_port);
     udp_socket.create_udp(UDP_PORT_SERVER);
-    run();
 }
+
 
 void Server::accept_client() {
     struct sockaddr_in address;
@@ -43,37 +40,35 @@ void Server::handle_client(int client_socket) {
 }
 
 void Server::run() {
+    struct pollfd fds[2];
+
+    fds[0].fd = STDIN_FILENO;
+    fds[0].events = POLLIN; 
+
+    fds[1].fd = tcp_socket.get_fd();
+    fds[1].events = POLLIN;
+
     while (running) {
-        if(tcp_socket.check_events())
-        {
-            accept_client();
+        int poll_count = poll(fds, 2, -1);
+        if (poll_count < 0) {
+            throw ("poll error");
+            break;
+        }
+        
+        if (fds[0].revents & POLLIN) {
+            std::string command;
+            std::getline(std::cin, command); 
+            if (command != "quit" && command != "start") {
+                processCommand(command);
+            }
+        }
+
+        if (fds[1].revents & POLLIN) {
+            if (tcp_socket.check_events()) {
+                accept_client();
+            }
         }
     }
-}
-
-void Server::stop() {
-    for (size_t i = 0; i < clients.size(); i++) {
-        cout << clients[i].username << endl;
-    }
-    running = false;
-}
-
-
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "Usage: ./server <port>" << std::endl;
-        return 1;
-    }
-
-    int port = std::atoi(argv[1]);
-    if (port <= 0) {
-        std::cerr << "Invalid port number." << std::endl;
-        return 1;
-    }
-
-    Server server(port);
-    server.start();
-    return 0;
 }
 
 bool Server::is_name_unique(string uname){
@@ -103,3 +98,92 @@ void Server::make_teames(){
        
 }
 
+// Server commands
+void Server::help() {
+    std::cout << "Available commands:" << std::endl;
+    std::cout << "  help    - Show this help message" << std::endl;
+    std::cout << "  status  - Show server status" << std::endl;
+    std::cout << "  start   - Start the server" << std::endl;
+    std::cout << "  quit    - Quit the server" << std::endl;
+    std::cout << "  stop    - Stop the server" << std::endl;
+}
+
+void Server::status() {
+    if (running) {
+        std::cout << "Server is running on port " << "." << std::endl;
+    } else {
+        std::cout << "Server is not running." << std::endl;
+    }
+}
+
+void Server::start() {
+    running = true;
+    run();
+}
+
+void Server::stop() {
+    running = false;
+}
+
+void Server::quit() {
+    if (!running) {
+        return;
+    }
+    running = false;  
+    tcp_socket.close_socket();
+    udp_socket.close_socket();
+
+    for (const auto& client : clients) {
+        close(client.socket); 
+    }
+    clients.clear();
+    teams.clear();
+}
+void Server::processCommand(const std::string& command) {
+    if (command == "help") {
+        help();
+    } else if (command == "status") {
+        status();
+    } else if (command == "start") {
+        start();
+    } else if (command == "quit") {
+        quit();
+    } else if (command == "stop") {
+        stop();
+    }
+        else {
+        std::cout << "Unknown command. Type 'help' for a list of commands." << std::endl;
+    }
+}
+
+int main(int argc, char* argv[]) {
+    try {
+        if (argc != 2) {
+            throw std::runtime_error("Usage: ./server <port>");
+        }
+
+        int port = std::atoi(argv[1]);
+        if (port <= 0) {
+            throw std::invalid_argument("Invalid port number.");
+        }
+
+        Server server(port);
+        std::string command;
+
+        while (true) {
+            std::cout << "> ";
+            std::getline(std::cin, command);
+
+            if (command == "quit") {
+                server.processCommand(command);
+                break;
+            }
+            server.processCommand(command);
+        }
+
+        return 0;
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    } 
+}

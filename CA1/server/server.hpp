@@ -44,7 +44,7 @@ private:
 
 public:
     Server(int tcp_port_);
-    void start();
+
     void run();
     void stop(); 
     void broadcast_message(const std::string& message);
@@ -55,6 +55,13 @@ public:
     
     int get_tcp_port() {return tcp_port;};
     vector<ClientInfo> get_clients() {return clients;};
+
+    // Server commands
+    void processCommand(const std::string& command);
+    void help();
+    void status();
+    void start();
+    void quit();
 };
 
 #endif // SERVER_HPP
