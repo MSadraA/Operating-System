@@ -43,7 +43,7 @@ private:
 
     // Poll
     void add_poll(int fd);
-    void check_console_poll();
+    void check_console_poll(struct pollfd & stdin_poll);
         
     public:
     Server(int tcp_port_);

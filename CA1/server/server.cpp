@@ -81,24 +81,25 @@ void Server::handle_client(int client_socket) {
     requestHandler.handleRequest(client_socket , req_type , data);
 }
 
-void Server::check_console_poll(){
-    // making console poll
-    struct pollfd stdin_poll;
-    stdin_poll.fd = STDIN_FILENO;
-    stdin_poll.events = POLLIN;
-    // checking it
+void Server::check_console_poll(struct pollfd & stdin_poll){
     int stdin_poll_count = poll(&stdin_poll, 1, 0);
     if (stdin_poll_count > 0 && (stdin_poll.revents & POLLIN)) {
         std::string command;
         std::getline(std::cin, command); 
-        if (command != "quit" && command != "start") // u cant quit or start while server is running 
-        {
+        if (command != "quit" && command != "start") {
             processCommand(command);
         }
     }
 }
 
+
 void Server::run() {
+    // making console poll
+    struct pollfd stdin_poll;
+    stdin_poll.fd = STDIN_FILENO;
+    stdin_poll.events = POLLIN;
+    poll_fds.push_back(stdin_poll);
+
     while (running) {
         int poll_count = poll(poll_fds.data(), poll_fds.size(), -1);
         if (poll_count < 0) {
@@ -106,7 +107,6 @@ void Server::run() {
             break;
         }
 
-        check_console_poll();
         // Receive connect request from clients
         if (poll_fds[0].revents & POLLIN) {
             if (tcp_socket.check_events()) {
@@ -114,9 +114,13 @@ void Server::run() {
             }
         }
         // Receive other request from clients
-        for (size_t i = 1; i < poll_fds.size(); i++) { 
+        for (size_t i = 0; i < poll_fds.size(); i++) { 
             if (poll_fds[i].revents & POLLIN) {
-                handle_client(poll_fds[i].fd);
+                if (poll_fds[i].fd == STDIN_FILENO) {
+                    check_console_poll(poll_fds[i]);
+                } else {
+                    handle_client(poll_fds[i].fd);
+                }
             }
         }
     }
