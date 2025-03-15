@@ -6,15 +6,15 @@ int server_tcp_port_): username(uname), role(r), udp_port(port) {
     server_tcp_port = server_tcp_port_;
     tcp_socket.create_tcp_client(server_tcp_port);
     udp_socket.create_udp(port);
-    start();
+    sendClientInfo();
 }
 
 void Client::start()
 {
-    sendClientInfo();
     running = true;
     run();
 }
+
 
 void Client::run() {
     struct pollfd fds[2];
@@ -24,7 +24,8 @@ void Client::run() {
     //tcp socket
     fds[1].fd = tcp_socket.get_fd();
     fds[1].events = POLLIN;
-   
+    
+    // Udp_socket udp_broadcast_socket;
     while (running) {
         int poll_count = poll(fds, 2, TIME_OUT);  
         if (poll_count < 0) {
@@ -35,7 +36,6 @@ void Client::run() {
         if (fds[0].revents & POLLIN) {
             std::string command;
             std::getline(std::cin, command);
-            std::cout << "Received command: " << command << std::endl;  // لاگ برای اشکال‌زدایی
             if (command == "quit") {
                 stop();
                 break;
@@ -43,7 +43,6 @@ void Client::run() {
                 process_command(command);
             }
         }
-
         // TCP request
         if (fds[1].revents & POLLIN) {
             std::string message = tcp_socket.receive_message_from_server();
@@ -51,7 +50,6 @@ void Client::run() {
                 std::cout << "TCP message: " << message << std::endl;
             }
         }
-
         //UDP request
         if ((udp_socket.check_events() == true) && POLLIN) {
                 std::string message = udp_socket.receive_message();
@@ -83,47 +81,144 @@ void Client::send_message_to_team(string msg){
     tcp_socket.send_massage_to_server(msg_snd);
 }
 
+void Client::share(){
+    string type = MSG + DELIM;
+    string code = "";
+    for (auto x : current_code)
+        code += x;
+    string msg_snd = type + code;
+    tcp_socket.send_massage_to_server(msg_snd);
+}
+
+void Client::write_code() {
+    cout << "Enter problem ID: ";
+    getline(cin, current_problem_id);
+    
+    cout << "Start writing your code. Type 'save' on a new line to finish.\n";
+    current_code.clear();
+    
+    string line;
+    while (true) {
+        getline(cin, line);
+        if (line == "save") {
+            cout << "Code saved successfully.\n";
+            break;
+        }
+        current_code.push_back(line);
+    }
+}
+
+
+void Client::show_problem(){
+    cout << "The problem is : " << current_problem_id << endl;
+}
+
+void Client::submit_code() {
+    if (current_code.empty()) {
+        cout << "No code written. Use 'write_code' first.\n";
+        return;
+    }
+    stringstream code_stream;
+    code_stream << current_problem_id << "\n";
+    for (const auto& line : current_code) {
+        code_stream << line << "\n";
+    }
+    string type = SBMT + DELIM;
+    string final_code = type + code_stream.str();
+    tcp_socket.send_massage_to_server(final_code);
+}
+
 Client::~Client() {
     stop();
     Port_manager::getInstance()->release_port(udp_port);
 }
 
-void Client::help(){
+void Client::help() {
     std::cout << "Available commands:\n";
-    std::cout << "  message <text> - Send a message to the server\n";
-    std::cout << "  quit - Exit the client\n";
+    std::cout << "  help         - Show this help message\n";
+    std::cout << "  chat <msg>   - Send a message to your team\n";
+    std::cout << "  problem      - Show the current problem statement\n";
+
+    if (role == CODER) {
+        std::cout << "  code         - Enter coding mode to write your solution\n";
+        std::cout << "  share        - Share your code with your teammate\n";
+    } 
+    else if (role == NAVIGATOR) {
+        std::cout << "  submit       - Submit the current code to the server\n";
+    }
+
+    std::cout << std::endl;
 }
 
 void Client::process_command(const string& command) {
     std::string trimmed_command = trim(command); 
-
+    // pablic commands
     if (trimmed_command == "help") {
         help();
+        return;
     } 
-    else if (trimmed_command.rfind("message ", 0) == 0) { 
-        std::string message = trimmed_command.substr(8);
+    else if (trimmed_command.rfind("chat ", 0) == 0) { 
+        std::string message = trimmed_command.substr(5);
         send_message_to_team(message);
+        return;
     } 
+    else if (trimmed_command.rfind("problem", 0) == 0) {
+        show_problem();
+        return;
+    }
+    // private commands
     else {
-        std::cout << "Unknown command. Type 'help' for a list of commands." << std::endl;
+        if (role == CODER) {
+           if(trimmed_command.rfind("code", 0) == 0){
+            write_code();
+            return;
+           }
+           else if(trimmed_command.rfind("share", 0) == 0){
+            share();
+            return;
+           }
+        }
+        else if(role == NAVIGATOR) {
+           if(trimmed_command.rfind("code", 0) == 0){
+            submit_code();
+            return;
+           }
+        }
+        else {
+            std::cout << "Unknown command. Type 'help' for a list of commands." << std::endl;
+        }
     }
 }
 
+
 int main(int argc, char* argv[]) {
-    if (argc != 4) {
-        std::cerr << "Usage: ./client <username> <role> <server_tcp_port>" << std::endl;
+    try {
+        if (argc != 4) {
+            throw std::invalid_argument("Usage: ./client <username> <role> <server_tcp_port>");
+        }
+
+        string username = argv[1];
+        string role = argv[2];
+        int server_tcp_port = stoi(argv[3]);
+
+        int udp_port = Port_manager::getInstance()->generate_unique_port();
+
+        Client client(username, role, udp_port, server_tcp_port);
+        client.start();
+    } 
+    catch (const std::invalid_argument& e) {
+        std::cerr << "Invalid argument error: " << e.what() << std::endl;
+        return 1;
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    }
+    catch (...) {
+        std::cerr << "Unknown error occurred!" << std::endl;
         return 1;
     }
 
-    string username = argv[1];
-    string role = argv[2];
-    int server_tcp_port = stoi(argv[3]);
-
-    int udp_port = Port_manager::getInstance()->generate_unique_port();
-
-    Client client(username, role, udp_port, server_tcp_port);
-    client.start();
     return 0;
 }
-
 

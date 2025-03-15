@@ -33,6 +33,7 @@ private:
     bool running; 
     Tcp_socket tcp_socket;
     Udp_socket udp_socket;
+    Udp_socket udp_broadcast_socket;
     vector<struct pollfd> poll_fds;
 
     // Handeling

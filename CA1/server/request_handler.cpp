@@ -7,7 +7,6 @@ Request_handler::Request_handler(Server& srv) : server(srv) {
     //
 }
 
-
 void Request_handler::handleRequest(int client_fd, string request_type, string data) {
     if (handlers.find(request_type) != handlers.end()) {
         handlers[request_type](client_fd, data);
@@ -19,10 +18,6 @@ void Request_handler::handleRequest(int client_fd, string request_type, string d
 void Request_handler::handle_register(int client_fd, string data) {
     vector<string> args;
     args = splitString(data , DELIM);
-
-    struct sockaddr_in address;
-    socklen_t client_len = sizeof(address);
-    getpeername(client_fd, (struct sockaddr*)&address, &client_len);
     
     struct sockaddr_in client_udp_address;
     inet_pton(AF_INET, args[3].c_str(), &(client_udp_address.sin_addr));

@@ -27,4 +27,7 @@ clean:
 run:
 	tmux new-session -d -s my_session
 	tmux rename-window -t my_session "Terminal 1"
+	tmux split-window -h -t my_session
+	tmux rename-window -t my_session "Terminal 2"
+	tmux split-window -v -t my_session:0.1
 	tmux attach-session -t my_session

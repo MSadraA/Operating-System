@@ -71,6 +71,7 @@ extern const char* BROADCAST_IP;
 // Server request type
 const string REG  = "register";
 const string MSG  = "message";
+const string SBMT = "submit";
 
 // Problem signature
 #define PROBLEM_1 "def add_number(a, b)"

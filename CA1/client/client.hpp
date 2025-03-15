@@ -10,7 +10,6 @@
 #include <sstream>
 #include <algorithm>
 
-
 class Client {
 private:
     int server_tcp_port;
@@ -18,8 +17,12 @@ private:
     string username;
     string role;
     int udp_port;
+    
     Tcp_socket tcp_socket;
     Udp_socket udp_socket;
+
+    string current_problem_id;
+    vector<string> current_code;
 
 public:
     Client(string uname, string r, int udp_port , int server_tcp_port_);
@@ -34,6 +37,10 @@ public:
     // Request
     void sendClientInfo();
     void send_message_to_team(string msg);
+    void write_code();
+    void submit_code();
+    void share();
+    void show_problem();
 
     ~Client();
 };

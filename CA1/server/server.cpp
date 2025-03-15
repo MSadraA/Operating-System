@@ -3,6 +3,7 @@
 Server::Server(int tcp_port_) : tcp_port(tcp_port_), requestHandler(*this), running(false) {
     tcp_socket.create_tcp_server(tcp_port);
     udp_socket.create_udp(UDP_PORT_SERVER);
+    udp_broadcast_socket.create_udp_broad_cast();
     add_poll(tcp_socket.get_fd());
 }
 
@@ -16,6 +17,7 @@ void Server::accept_client() {
 void Server::register_client(int client_socket, const std::string& username, const std::string& role,
     const std::string& udp_port , struct sockaddr_in udp_address , bool has_team_) {
     clients.push_back({stoi(udp_port) , client_socket, username, role, udp_address , has_team_});
+    
     make_teames();
 }
 
@@ -75,9 +77,12 @@ void Server::handle_client(int client_socket) {
     string req_type;
     string data;
 
+    
     split_by_delim(input , DELIM , req_type , data);
-    if(data == "")
+    if(data == "" || req_type == "")
         return;
+    cout << "DATA : " << data << endl;
+    cout << "TYPE : " << req_type << endl;
     requestHandler.handleRequest(client_socket , req_type , data);
 }
 
@@ -93,6 +98,7 @@ void Server::check_console_poll(struct pollfd & stdin_poll){
 }
 
 
+
 void Server::run() {
     // making console poll
     struct pollfd stdin_poll;
@@ -106,13 +112,15 @@ void Server::run() {
             throw std::runtime_error("Poll error");
             break;
         }
-
+        
         // Receive connect request from clients
         if (poll_fds[0].revents & POLLIN) {
             if (tcp_socket.check_events()) {
                 accept_client();
-            }
+                continue;
+            } //?????
         }
+        
         // Receive other request from clients
         for (size_t i = 0; i < poll_fds.size(); i++) { 
             if (poll_fds[i].revents & POLLIN) {
@@ -150,7 +158,6 @@ void Server::make_teames(){
             }
         }
     }
-       
 }
 
 void Server::add_poll(int fd){
@@ -206,12 +213,12 @@ void Server::processCommand(const std::string& command) {
     if (command == "help") {
         help();
     } else if (command == "status") {
-        status();
-    } else if (command == "start") {
-        start();
-    } else if (command == "quit") {
+        udp_broadcast_socket.broadcast_message("hiiiiiiiii");
+    } else if (command == "start") { // start a server
+        start(); 
+    } else if (command == "quit") { // delete the server
         quit();
-    } else if (command == "stop") {
+    } else if (command == "stop") { // stop the server 
         stop();
     }
         else {
