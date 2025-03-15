@@ -78,10 +78,8 @@ string Udp_socket::receive_message() {
                                   (struct sockaddr*)&sender_addr, &addr_len);
     if (bytes_received > 0) {
         buffer[bytes_received] = '\0';
-        std::cout << "[DEBUG] Received Broadcast message: " << buffer << std::endl;
         return std::string(buffer);
     }
-    
     return "";
 }
 
@@ -102,7 +100,6 @@ sockaddr_in Udp_socket::get_bound_address() {
     }
     return addr;
 }
-
 
 
 Udp_socket::~Udp_socket() {

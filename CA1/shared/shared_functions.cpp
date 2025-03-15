@@ -47,3 +47,9 @@ std::string trim(const std::string& str) {
     return s;
 }
 
+std::string format_time(time_t raw_time) {
+    std::tm* time_info = std::localtime(&raw_time); 
+    std::stringstream ss;
+    ss << std::put_time(time_info, "%H:%M:%S"); 
+    return ss.str();
+}

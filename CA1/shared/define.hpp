@@ -19,6 +19,7 @@
 #include <fcntl.h>
 #include <time.h>
 #include <sys/timerfd.h>
+#include <chrono>
 #include <iostream>
 
 using namespace std;
@@ -26,7 +27,9 @@ using namespace std;
 #define STDIN 0
 #define STDOUT 1
 
+#define TIME 2 //min
 #define MAX_CLIENTS 100
+#define MAX_PROBLEM 3
 
 // Server Broadcast
 #define UDP_PORT_SERVER 8081
@@ -64,6 +67,7 @@ extern const char* BROADCAST_IP;
 #define REQUEST_ERROR_INVALID "invalid_request"
 #define REQUEST_ERROR_NOT_FOUND "not_found"
 #define REQUEST_ERROR_INVALID_PARAMS "invalid_params"
+#define TEAMMATE_ERR "You have no teammates!"
 
 // Player type
 #define CODER "coder"
@@ -74,6 +78,8 @@ const string REG  = "register";
 const string MSG  = "message";
 const string SBMT = "submit";
 const string SHARE = "share";
+const string PRBLM = "problem";
+const string BRDCST = "broadcast";
 
 // Problem signature
 #define PROBLEM_1 "def add_number(a, b)"

@@ -85,8 +85,7 @@ void Tcp_socket::send_massage_to_server(string message)
     ssize_t sent_bytes = send(tcp_socket, message.c_str(), message.size(), 0);
     if (sent_bytes == -1) {
         std::cerr << "Error sending message: " << strerror(errno) << std::endl;
-    } else 
-        std::cout << "Message sent: " << message << std::endl;
+    }
 }
 
 bool Tcp_socket::check_events() {

@@ -39,17 +39,25 @@ void Request_handler::handle_register(int client_fd, string data) {
 void Request_handler::handle_message(int client_fd, string data){
     int team_socket = server.find_teammate_by_socket(client_fd);
     if(team_socket == -1)
+    {
+        server.udp_socket.unicast_message( TEAMMATE_ERR , server.find_client_info(client_fd).client_udp_address);
         return;
+    }
     string type = MSG + DELIM;
     string msg = type + data;
     server.tcp_socket.send_message_to_client(team_socket , msg);
 }
 
 void Request_handler::handle_share(int client_fd, string data){
-    cout << "hhhhhhhhhhhhhhhhhh" << endl;
+    int team_socket = server.find_teammate_by_socket(client_fd);
+    if(team_socket == -1)
+    {
+        server.udp_socket.unicast_message( TEAMMATE_ERR , server.find_client_info(client_fd).client_udp_address);
+        return;
+    }
     string type = SHARE + DELIM;
     string msg = type + data;
-    server.tcp_socket.send_message_to_client(server.find_teammate_by_socket(client_fd) , msg);
+    server.tcp_socket.send_message_to_client(team_socket , msg);
 }
 
 void Request_handler::handle_submit(int client_fd, string data){

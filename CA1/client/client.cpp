@@ -28,6 +28,14 @@ void Client::handle_message(string msg){
         cout << "Code from coder :" << data << endl;
         current_code = data;
     }
+    else if(req_type == PRBLM)
+    {
+        current_problem_id = data;
+    }
+    else if(req_type == BRDCST)
+    {
+        cout << "Server : " << data << endl;
+    }
 }
 
 void Client::run() {
@@ -68,7 +76,7 @@ void Client::run() {
         if ((udp_socket.check_events() == true) && POLLIN) {
                 std::string message = udp_socket.receive_message();
             if (!message.empty()) {
-                std::cout << "UDP message: " << message << std::endl;
+                handle_message(message);
             }
         }
     }
@@ -224,7 +232,6 @@ int main(int argc, char* argv[]) {
         std::cerr << "Unknown error occurred!" << std::endl;
         return 1;
     }
-
     return 0;
 }
 
