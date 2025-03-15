@@ -26,6 +26,7 @@ void Client::handle_message(string msg){
     else if(req_type == SHARE)
     {
         cout << "Code from coder :" << data << endl;
+        current_code = data;
     }
 }
 
@@ -105,7 +106,7 @@ void Client::share(){
 
 void Client::write_code() {    
     cout << "Start writing your code. Type 'save' on a new line to finish.\n";
-    current_code.clear();
+    current_code = "";
     
     string line;
     while (true) {
@@ -114,7 +115,7 @@ void Client::write_code() {
             cout << "Code saved successfully.\n";
             break;
         }
-        current_code.push_back(line);
+        current_code += line;
     }
 }
 
@@ -124,17 +125,12 @@ void Client::show_problem(){
 }
 
 void Client::submit_code() {
-    if (current_code.empty()) {
+    if (current_code == "") {
         cout << "No code written. Use 'write_code' first.\n";
         return;
     }
-    stringstream code_stream;
-    code_stream << current_problem_id << "\n";
-    for (const auto& line : current_code) {
-        code_stream << line << "\n";
-    }
     string type = SBMT + DELIM;
-    string final_code = type + code_stream.str();
+    string final_code = type + current_code;
     tcp_socket.send_massage_to_server(final_code);
 }
 

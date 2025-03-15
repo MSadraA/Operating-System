@@ -64,10 +64,6 @@ void Server::remove_client(int client_socket) {
         }
     }
     remove_poll(client_socket);
-
-    // for (auto client : clients){
-    //     cout << "CLIENTS : " << client.username << " " << client.has_team << endl;
-    // }
 }
 
 // Handlers

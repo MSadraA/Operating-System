@@ -22,7 +22,7 @@ private:
     Udp_socket udp_socket;
 
     string current_problem_id;
-    vector<string> current_code;
+    string current_code;
 
 public:
     Client(string uname, string r, int udp_port , int server_tcp_port_);
