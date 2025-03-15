@@ -69,6 +69,19 @@ extern const char* BROADCAST_IP;
 #define NAVIGATOR "navigator"
 
 // Server request type
-#define REG "register"
+const string REG  = "register";
+const string MSG  = "message";
+
+// Problem signature
+#define PROBLEM_1 "def add_number(a, b)"
+#define PROBLEM_2 "def reverse_string(s)"
+#define PROBLEM_3 "def is_palindrome(s)"
+
+// Clients
+#define CLIENT_INFO_ARGS 3
+#define TIME_OUT 500 //ms
+
+
+const std::vector<std::string> SIGNT = {PROBLEM_1, PROBLEM_2, PROBLEM_3};
 
 #endif

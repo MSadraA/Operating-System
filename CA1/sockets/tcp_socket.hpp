@@ -2,30 +2,36 @@
 #define TCP_SOCKET_HPP
 
 #include "define.hpp"
-#define TMIE_OUT 500 //ms
 
 class Tcp_socket {
 private:
     int tcp_socket;
     struct sockaddr_in address;
-    vector<struct pollfd> poll_fds;
+
+    // Poll
+    struct pollfd poll_fd;
+    void make_poll();
 
 public:
     Tcp_socket(); 
     ~Tcp_socket();
-
+    // Init socket
     void create_tcp_client(int server_port);
     void create_tcp_server(int port);
-    void send_massage(string message);
+
+    // Handle request
+    void send_massage_to_server(string message);
+    void send_message_to_client(int client_fd, const string& message);
     int accept_client(struct sockaddr_in &client_addr);
-    string receive_message(int client_fd);
-    void remove_poll(int client_fd);
-    bool check_events();
+    string receive_message_from_client(int client_fd);
+    string receive_message_from_server();
     void close_socket();
 
+    // geters
     int get_fd() {return tcp_socket;};
-
     struct sockaddr_in get_address() {return address;};
+
+    bool check_events();
 };
 
 #endif

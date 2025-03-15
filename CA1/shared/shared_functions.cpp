@@ -21,3 +21,29 @@ string get_address_as_string(sockaddr_in address) {
     return string(ip);
 }
 
+void split_by_delim(const std::string& input, char delim, std::string& type, std::string& data) {
+    size_t pos = input.find(delim); 
+
+    if (pos != std::string::npos) { 
+        type = input.substr(0, pos);  
+        data = input.substr(pos + 1); 
+    } else { 
+        type = input;
+        data = ""; 
+    }
+}
+
+std::string trim(const std::string& str) {
+    std::string s = str;
+
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }));
+
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }).base(), s.end());
+
+    return s;
+}
+

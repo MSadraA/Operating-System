@@ -2,6 +2,13 @@
 
 Tcp_socket::Tcp_socket() : tcp_socket(-1) {}
 
+void Tcp_socket::make_poll(){
+    struct pollfd server_poll;
+    server_poll.fd = tcp_socket;
+    server_poll.events = POLLIN;
+    poll_fd = server_poll;
+}
+
 void Tcp_socket::create_tcp_server(int port) {
     tcp_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (tcp_socket == -1) {
@@ -27,10 +34,7 @@ void Tcp_socket::create_tcp_server(int port) {
         throw std::runtime_error("Failed to listen on TCP socket");
     }
 
-    struct pollfd server_poll;
-    server_poll.fd = tcp_socket;
-    server_poll.events = POLLIN;
-    poll_fds.push_back(server_poll);
+    make_poll();
 }
 
 void Tcp_socket::create_tcp_client(int server_port){
@@ -73,28 +77,24 @@ int Tcp_socket::accept_client(struct sockaddr_in &client_addr) {
     if (client_socket < 0) {
         throw std::runtime_error("Failed to accept client");
     }
-
-    struct pollfd client_poll;
-    client_poll.fd = client_socket;
-    client_poll.events = POLLIN;
-    poll_fds.push_back(client_poll);
-
     return client_socket;
 }
 
-void Tcp_socket::send_massage(string message)
+void Tcp_socket::send_massage_to_server(string message)
 {
-    if (send(tcp_socket, message.c_str(), message.size(), 0) < 0) {
-        throw runtime_error("Failed to send client info");
-    }
+    ssize_t sent_bytes = send(tcp_socket, message.c_str(), message.size(), 0);
+    if (sent_bytes == -1) {
+        std::cerr << "Error sending message: " << strerror(errno) << std::endl;
+    } else 
+        std::cout << "Message sent: " << message << std::endl;
 }
 
 bool Tcp_socket::check_events() {
-    int activity = poll(poll_fds.data(), poll_fds.size(), TMIE_OUT); // 500ms تایم اوت
+    int activity = poll(&poll_fd , 1 , 0);
     if (activity < 0) {
         throw runtime_error("Poll error");
     }
-    return (activity > 0);
+    return (activity > 0) && poll_fd.revents;
 }
 
 void Tcp_socket::close_socket() {
@@ -104,30 +104,29 @@ void Tcp_socket::close_socket() {
     }
 }
 
-string Tcp_socket::receive_message(int client_fd) {
+string Tcp_socket::receive_message_from_client(int client_fd) {
     char buffer[BUFFER_SIZE];
     memset(buffer, 0, sizeof(buffer));
 
     int bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
     if (bytes_received <= 0) {
-        remove_poll(client_fd); 
         return "";
     }
 
     return std::string(buffer, bytes_received); 
 }
 
-void Tcp_socket::remove_poll(int client_fd) {
-    close(client_fd);  
+void Tcp_socket::send_message_to_client(int client_fd, const string& message) {
+    send(client_fd, message.c_str(), message.size(), 0);
+}
 
-    for (auto it = poll_fds.begin(); it != poll_fds.end(); ++it) {
-        if (it->fd == client_fd) {
-            poll_fds.erase(it);
-            break;
-        }
+string Tcp_socket::receive_message_from_server() {
+    char buffer[BUFFER_SIZE] = {0};
+    int bytes_received = recv(tcp_socket, buffer, sizeof(buffer), 0);
+    if (bytes_received > 0) {
+        return string(buffer, bytes_received);
     }
-
-    std::cout << "Client " << client_fd << " disconnected and removed.\n";
+    return "";
 }
 
 Tcp_socket::~Tcp_socket() {

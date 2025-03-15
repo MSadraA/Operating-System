@@ -4,6 +4,13 @@ Udp_socket::Udp_socket(){
     udp_socket = -1;
 }
 
+void Udp_socket::make_poll() {
+    struct pollfd broadcast_poll;
+    broadcast_poll.fd = udp_socket;
+    broadcast_poll.events = POLLIN;
+    poll_fd = broadcast_poll;
+}
+
 void Udp_socket::create_udp(int port){
     udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
     if (udp_socket == -1) {
@@ -20,12 +27,7 @@ void Udp_socket::create_udp(int port){
         perror("Bind error (unicast)");
         throw runtime_error("Failed to bind UDP unicast socket");
     }
-
-    struct pollfd broadcast_poll;
-    broadcast_poll.fd = udp_socket;
-    broadcast_poll.events = POLLIN;
-    poll_fds.push_back(broadcast_poll);
-
+    make_poll();
 }
 
 void Udp_socket::unicast_message(const std::string& message, sockaddr_in& client_addr) {
@@ -35,18 +37,11 @@ void Udp_socket::unicast_message(const std::string& message, sockaddr_in& client
 }
 
 bool Udp_socket::check_events() {
-    if (poll_fds.empty()) return false; 
-
-    int activity = poll(poll_fds.data(), poll_fds.size(), TMIE_OUT); 
-
-    if (activity > 0) {
-        for (const auto& pfd : poll_fds) {
-            if (pfd.fd == udp_socket && (pfd.revents & POLLIN)) {
-                return true;
-            }
-        }
+    int activity = poll(&poll_fd , 1 , 0);
+    if (activity < 0) {
+        throw runtime_error("Poll error");
     }
-    return false;
+    return (activity > 0) && poll_fd.revents;
 }
 
 string Udp_socket::receive_message() {
@@ -56,19 +51,14 @@ string Udp_socket::receive_message() {
 
     memset(buffer, 0, sizeof(buffer));
 
-    for (const auto& pfd : poll_fds) {
-        if (pfd.revents & POLLIN) {
-            int bytes_received = recvfrom(pfd.fd, buffer, sizeof(buffer), 0,
-                                          (struct sockaddr*)&sender_addr, &addr_len);
-            if (bytes_received > 0) {
-                buffer[bytes_received] = '\0';
-                if (pfd.fd == udp_socket) {
-                    std::cout << "[DEBUG] Received Broadcast message: " << buffer << std::endl;
-                } 
-                return std::string(buffer);
-            }
-        }
+    int bytes_received = recvfrom(udp_socket , buffer, sizeof(buffer), 0,
+                                  (struct sockaddr*)&sender_addr, &addr_len);
+    if (bytes_received > 0) {
+        buffer[bytes_received] = '\0';
+        std::cout << "[DEBUG] Received Broadcast message: " << buffer << std::endl;
+        return std::string(buffer);
     }
+    
     return "";
 }
 
