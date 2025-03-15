@@ -34,6 +34,10 @@ public:
     void stop();
     void help();
 
+    // Receive messages
+    void handle_message(string msg);
+
+
     // Request
     void sendClientInfo();
     void send_message_to_team(string msg);

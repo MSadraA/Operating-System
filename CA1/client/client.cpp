@@ -15,6 +15,19 @@ void Client::start()
     run();
 }
 
+// Handle message
+void Client::handle_message(string msg){
+    string req_type;
+    string data;
+    split_by_delim(msg , DELIM , req_type , data);
+    if(req_type == MSG){
+        cout << "Message from your teammate : " << data << endl;
+    }
+    else if(req_type == SHARE)
+    {
+        cout << "Code from coder :" << data << endl;
+    }
+}
 
 void Client::run() {
     struct pollfd fds[2];
@@ -47,7 +60,7 @@ void Client::run() {
         if (fds[1].revents & POLLIN) {
             std::string message = tcp_socket.receive_message_from_server();
             if (!message.empty()) {
-                std::cout << "TCP message: " << message << std::endl;
+                handle_message(message);
             }
         }
         //UDP request
@@ -82,7 +95,7 @@ void Client::send_message_to_team(string msg){
 }
 
 void Client::share(){
-    string type = MSG + DELIM;
+    string type = SHARE + DELIM;
     string code = "";
     for (auto x : current_code)
         code += x;
@@ -90,10 +103,7 @@ void Client::share(){
     tcp_socket.send_massage_to_server(msg_snd);
 }
 
-void Client::write_code() {
-    cout << "Enter problem ID: ";
-    getline(cin, current_problem_id);
-    
+void Client::write_code() {    
     cout << "Start writing your code. Type 'save' on a new line to finish.\n";
     current_code.clear();
     
@@ -179,7 +189,7 @@ void Client::process_command(const string& command) {
            }
         }
         else if(role == NAVIGATOR) {
-           if(trimmed_command.rfind("code", 0) == 0){
+           if(trimmed_command.rfind("submit", 0) == 0){
             submit_code();
             return;
            }

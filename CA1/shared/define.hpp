@@ -48,6 +48,7 @@ using namespace std;
 
 // Delimiter
 #define DELIM ':'
+#define CODE_DELIM = 
 
 // IP
 #define SERVER_IP "127.0.0.1"
@@ -72,6 +73,7 @@ extern const char* BROADCAST_IP;
 const string REG  = "register";
 const string MSG  = "message";
 const string SBMT = "submit";
+const string SHARE = "share";
 
 // Problem signature
 #define PROBLEM_1 "def add_number(a, b)"

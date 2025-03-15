@@ -36,6 +36,10 @@ private:
     Udp_socket udp_broadcast_socket;
     vector<struct pollfd> poll_fds;
 
+    // Problems
+    vector <string > problems;
+    int cur_problem;
+
     // Handeling
     void accept_client();
     void handle_client(int client_socket);
@@ -53,6 +57,7 @@ private:
     void unicast_message(const std::string& message, const ClientInfo& client_info);
     bool is_name_unique(string uname);
     void make_teames();
+    void send_message_to_team(const Team& team , string message);
 
     // Finders
     int find_teammate_by_socket(int socket);
@@ -76,6 +81,7 @@ private:
     void quit();
     void run();
     void stop(); 
+    void send_problem();
 };
 
 

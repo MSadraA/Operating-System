@@ -4,7 +4,8 @@
 Request_handler::Request_handler(Server& srv) : server(srv) {
     handlers[REG] = [&](int client_fd, string data) { handle_register(client_fd, data); };
     handlers[MSG] = [&](int client_fd, string data) { handle_message(client_fd, data); };
-    //
+    handlers[SBMT] = [&](int client_fd, string data) { handle_submit(client_fd, data); };
+    handlers[SHARE] = [&](int client_fd, string data) { handle_share(client_fd, data); };
 }
 
 void Request_handler::handleRequest(int client_fd, string request_type, string data) {
@@ -39,8 +40,19 @@ void Request_handler::handle_message(int client_fd, string data){
     int team_socket = server.find_teammate_by_socket(client_fd);
     if(team_socket == -1)
         return;
-    server.tcp_socket.send_message_to_client(team_socket , data);
+    string type = MSG + DELIM;
+    string msg = type + data;
+    server.tcp_socket.send_message_to_client(team_socket , msg);
 }
 
+void Request_handler::handle_share(int client_fd, string data){
+    cout << "hhhhhhhhhhhhhhhhhh" << endl;
+    string type = SHARE + DELIM;
+    string msg = type + data;
+    server.tcp_socket.send_message_to_client(server.find_teammate_by_socket(client_fd) , msg);
+}
 
+void Request_handler::handle_submit(int client_fd, string data){
+    cout << data << endl;
+}
 

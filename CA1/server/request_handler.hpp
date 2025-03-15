@@ -20,6 +20,8 @@ public:
 private:
     void handle_register(int client_fd, string data);
     void handle_message(int client_fd, string data);
+    void handle_submit(int client_fd, string data);
+    void handle_share(int client_fd, string data);
 };
 
 #endif // REQUEST_HANDLER_HPP

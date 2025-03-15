@@ -4,6 +4,10 @@ Server::Server(int tcp_port_) : tcp_port(tcp_port_), requestHandler(*this), runn
     tcp_socket.create_tcp_server(tcp_port);
     udp_socket.create_udp(UDP_PORT_SERVER);
     udp_broadcast_socket.create_udp_broad_cast();
+    problems.push_back(PROBLEM_1);
+    problems.push_back(PROBLEM_2);
+    problems.push_back(PROBLEM_3);
+    cur_problem = 0;
     add_poll(tcp_socket.get_fd());
 }
 
@@ -97,7 +101,10 @@ void Server::check_console_poll(struct pollfd & stdin_poll){
     }
 }
 
-
+void Server::send_message_to_team(const Team& team , string message){
+    udp_socket.unicast_message(message , find_client_info(team.team_members.first).client_udp_address);
+    udp_socket.unicast_message(message , find_client_info(team.team_members.second).client_udp_address);
+}
 
 void Server::run() {
     // making console poll
@@ -178,11 +185,12 @@ void Server::help() {
 }
 
 void Server::status() {
-    if (running) {
-        std::cout << "Server is running on port " << "." << std::endl;
-    } else {
-        std::cout << "Server is not running." << std::endl;
-    }
+    cout << "Number of users : " << clients.size() << endl;
+    cout << "Current Problem : " << problems[cur_problem] << endl;
+    cout << "Teams : " << endl;
+    for (auto x : teams)
+        cout << find_client_info(x.team_members.first).username << " and " 
+        << find_client_info(x.team_members.second).username << endl;       
 }
 
 void Server::start() {
@@ -213,7 +221,7 @@ void Server::processCommand(const std::string& command) {
     if (command == "help") {
         help();
     } else if (command == "status") {
-        udp_broadcast_socket.broadcast_message("hiiiiiiiii");
+        status();
     } else if (command == "start") { // start a server
         start(); 
     } else if (command == "quit") { // delete the server
@@ -221,9 +229,17 @@ void Server::processCommand(const std::string& command) {
     } else if (command == "stop") { // stop the server 
         stop();
     }
+    else if (command == "stop") { // send problem
+        send_problem();
+    }
         else {
         std::cout << "Unknown command. Type 'help' for a list of commands." << std::endl;
     }
+}
+
+void Server::send_problem(){
+    for(auto team : teams)
+        send_message_to_team(team , problems[cur_problem]);
 }
 
 // Finders
