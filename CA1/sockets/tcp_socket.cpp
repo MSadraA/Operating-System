@@ -128,6 +128,38 @@ string Tcp_socket::receive_message_from_server() {
     return "";
 }
 
+
+string Tcp_socket::send_and_receive_blocking(const string& message, int timeout_ms = 5000) {
+    int bytes_sent = send(tcp_socket ,  message.c_str(), message.size(), 0);
+    if (bytes_sent <= 0) {
+        perror("send failed");
+        return "ERROR_SEND";
+    }
+    struct pollfd pfd;
+    pfd.fd = tcp_socket;
+    pfd.events = POLLIN;
+
+    int poll_result = poll(&pfd, 1, timeout_ms);
+    if (poll_result == 0) {
+        cout << "Timeout waiting for response!" << endl;
+        return "ERROR_TIMEOUT";
+    } else if (poll_result < 0) {
+        perror("poll failed");
+        return "ERROR_POLL";
+    }
+
+    char buffer[BUFFER_SIZE] = {0};
+    int bytes_received = recv(tcp_socket, buffer, sizeof(buffer) - 1, 0);
+    if (bytes_received <= 0) {
+        perror("recv failed");
+        return "ERROR_RECV";
+    }
+
+    return string(buffer);
+};
+
+
+
 Tcp_socket::~Tcp_socket() {
     close_socket();
 }

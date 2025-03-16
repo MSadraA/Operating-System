@@ -61,6 +61,52 @@ void Request_handler::handle_share(int client_fd, string data){
 }
 
 void Request_handler::handle_submit(int client_fd, string data){
-    cout << data << endl;
+    int team_socket = server.find_teammate_by_socket(client_fd);
+    Team& team = server.find_team(client_fd);
+    float score = server.scores[server.cur_problem];
+    if(team_socket == -1)
+    {
+        server.udp_socket.unicast_message( TEAMMATE_ERR , server.find_client_info(client_fd).client_udp_address);
+        return;
+    }
+    if(team.has_submit)
+    {
+        server.send_message_to_team(team , "You have already submitted your answer.");
+        return;
+    }
+    // make client tcp socket
+    Tcp_socket socket;
+    socket.create_tcp_client(EVAL_PORT);
+
+    auto now = std::chrono::steady_clock::now();
+    auto elapsed_time = std::chrono::duration_cast<std::chrono:: seconds>(now - server.last_problem_time).count();
+    float extra_point = 0.0;
+    // Send code to evaluation server
+    string code = server.problems[server.cur_problem] + '\n' + data;
+    string answer;
+    answer = socket.send_and_receive_blocking(code , WAIT);
+    string msg = "";
+    msg += "ELPASED TIME : " + to_string(elapsed_time) + " seconds" + ' ';
+    if(elapsed_time <= (TIME)/2 && answer == "PASS")
+    {
+        extra_point = score *(0.5);
+        msg += " You get " + to_string(extra_point) + " extra points.\n";
+    }
+    else if(elapsed_time <= (TIME*3/4) && answer == "PASS")
+    {
+        extra_point = score *(0.2);
+        msg += " You get " + to_string(extra_point) + " extra points.\n";
+    }
+    msg += "RESULT : " + answer + '\n';
+    float final_score = score + extra_point;
+    if(answer == "PASS")
+        team.score += final_score;
+    else 
+        final_score = 0.0;
+    msg += "The score of this problem : " + to_string(final_score) + '\n';
+    msg += "Total points : " + to_string(team.score) + '\n';
+    server.send_message_to_team(team , msg);
+    team.has_submit = true;
+    socket.close_socket();
 }
 

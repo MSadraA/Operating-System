@@ -20,7 +20,8 @@ struct ClientInfo {
 
 struct Team{
     pair<int , int> team_members;
-    int score;
+    float score;
+    bool has_submit;
 };
 
 class Server {
@@ -32,6 +33,7 @@ private:
     Request_handler requestHandler;
     bool running; 
     Tcp_socket tcp_socket;
+    // Tcp_socket evaluation_socket;
     Udp_socket udp_socket;
     Udp_socket udp_broadcast_socket;
     vector<struct pollfd> poll_fds;
@@ -41,6 +43,7 @@ private:
 
     // Problems
     vector <string > problems;
+    vector <float> scores;
     int cur_problem;
 
     void check_elpased_time();
@@ -57,7 +60,7 @@ private:
         
     public:
     Server(int tcp_port_);
-    
+    void reset_submit();
     void broadcast_message_to_teams(const std::string& message);
     bool is_name_unique(string uname);
     void make_teames();
@@ -67,12 +70,13 @@ private:
     int find_teammate_by_socket(int socket);
     ClientInfo& find_teammate_client_info(int socket);
     ClientInfo& find_client_info(int socket);
+    Team& find_team(int socket);
     
     // Removers
     void remove_client(int client_socket);
     void remove_team(int client_socket);
     void remove_poll(int client_socket);
-    
+     
     // Geters
     int get_tcp_port() {return tcp_port;};
     vector<ClientInfo> get_clients() {return clients;};

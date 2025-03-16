@@ -22,20 +22,22 @@
 #include <map>
 #include <functional>
 #include <iomanip> 
+#include <optional>
 ////////////////////
-// #include <iostream>
-// #include <cstdlib>
+#include <iostream>
+#include <cstdlib>
 #include <ctime>
-// #include <sstream>
+#include <sstream>
 
 using namespace std;
 
 #define STDIN 0
 #define STDOUT 1
 
-#define TIME 2 //min
+#define TIME 70 //sec
 #define MAX_CLIENTS 100
 #define MAX_PROBLEM 3
+#define EVAL_PORT 65432
 
 // Server Broadcast
 #define UDP_PORT_SERVER 8081
@@ -88,15 +90,17 @@ const string PRBLM = "problem";
 const string BRDCST = "broadcast";
 
 // Problem signature
-#define PROBLEM_1 "def add_number(a, b)"
-#define PROBLEM_2 "def reverse_string(s)"
-#define PROBLEM_3 "def is_palindrome(s)"
+#define PROBLEM_1 "add_numbers"
+#define PROBLEM_2 "reverse_string"
+#define PROBLEM_3 "is_palindrome"
+// Problem score
+#define SCORE_1 1
+#define SCORE_2 3
+#define SCORE_3 5
 
 // Clients
 #define CLIENT_INFO_ARGS 3
 #define TIME_OUT 500 //ms
-
-
-const std::vector<std::string> SIGNT = {PROBLEM_1, PROBLEM_2, PROBLEM_3};
+#define WAIT 5000 //ms
 
 #endif

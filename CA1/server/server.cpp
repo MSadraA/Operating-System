@@ -2,12 +2,17 @@
 
 Server::Server(int tcp_port_) : tcp_port(tcp_port_), requestHandler(*this), running(false) {
     tcp_socket.create_tcp_server(tcp_port);
+    // evaluation_socket.create_tcp_client(EVAL_PORT);
     udp_socket.create_udp(UDP_PORT_SERVER);
     udp_broadcast_socket.create_udp_broad_cast();
     // init problems
     problems.push_back(PROBLEM_1);
     problems.push_back(PROBLEM_2);
     problems.push_back(PROBLEM_3);
+    // init scores
+    scores.push_back(SCORE_1);
+    scores.push_back(SCORE_2);
+    scores.push_back(SCORE_3);
 
     is_contest_started = false;
     cur_problem = 0;
@@ -107,10 +112,11 @@ void Server::send_message_to_team(const Team& team , string message){
     udp_socket.unicast_message(type + message , find_client_info(team.team_members.second).client_udp_address);
 }
 
+
 void Server::start_contest(){
     last_problem_time = std::chrono::steady_clock::now();
     auto now = std::chrono::system_clock::now();
-    auto end_time = now + std::chrono::minutes(10);
+    auto end_time = now + std::chrono::minutes(TIME/60 * MAX_PROBLEM);
 
     time_t start_timestamp = std::chrono::system_clock::to_time_t(now);
     time_t end_timestamp = std::chrono::system_clock::to_time_t(end_time);
@@ -126,6 +132,10 @@ void Server::start_contest(){
     is_contest_started = true;
 }
 
+void Server::reset_submit(){
+    for (auto& team : teams)
+        team.has_submit = false;
+}
 
 void Server::check_elpased_time(){
     auto now = std::chrono::steady_clock::now();
@@ -138,7 +148,7 @@ void Server::check_elpased_time(){
         return;
     }
 
-    if (elapsed_time.count() >= 10) { // check time left
+    if (elapsed_time.count() >= TIME) { // check time left
         cur_problem += 1;
         send_problem();
         last_problem_time = now;
@@ -159,7 +169,7 @@ void Server::run() {
         if (is_contest_started) {
             auto next_check_time = last_problem_time + std::chrono::seconds(1);
             timeout = std::chrono::duration_cast<std::chrono::milliseconds>(next_check_time - now).count();
-            if (timeout < 0) timeout = 0; // اگر زمان منفی شد، poll را بلافاصله اجرا کن
+            if (timeout < 0) timeout = 0;
         }
         
         int poll_count = poll(poll_fds.data(), poll_fds.size(), timeout);
@@ -168,6 +178,7 @@ void Server::run() {
             break;
         }   
 
+        // Sendes problem every x min
         if(is_contest_started)
             check_elpased_time();
 
@@ -210,7 +221,7 @@ void Server::make_teames(){
             {
                 client.has_team = true;
                 new_client.has_team = true;
-                teams.push_back({make_pair(client.socket , new_client.socket) , 0}); // init team
+                teams.push_back({make_pair(client.socket , new_client.socket) , 0 , false}); // init team
                 string type = BRDCST + DELIM;
                 string msg = type + "A teammate has been found for you !";
                 udp_socket.unicast_message(msg , client.client_udp_address);
@@ -294,13 +305,14 @@ void Server::send_problem(){
     for(auto team : teams){
         string msg = "Problem " + to_string(cur_problem + 1) + " is : " + '"' + problems[cur_problem] + '"' 
         + " you have " + to_string(TIME) +
-        " minutes to solve it";
+        " seconds to solve it";
         if(cur_problem < MAX_PROBLEM)
         {
             send_message_to_team(team , msg);
             broadcast_problem_to_teams();
         }
     }
+    reset_submit();
 }
 
 void Server::broadcast_message_to_teams(const std::string& message){
@@ -330,6 +342,13 @@ int Server::find_teammate_by_socket(int client_socket) {
             return p1;
     }
     return -1;
+}
+
+Team& Server::find_team(int socket){
+    for (auto& team : teams){
+        if(team.team_members.first == socket || team.team_members.second == socket)
+            return team;
+    }
 }
 
 ClientInfo& Server::find_client_info(int client_socket)

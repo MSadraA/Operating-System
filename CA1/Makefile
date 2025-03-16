@@ -30,4 +30,6 @@ run:
 	tmux split-window -h -t my_session
 	tmux rename-window -t my_session "Terminal 2"
 	tmux split-window -v -t my_session:0.1
+	tmux rename-window -t my_session "Terminal 3"
+	tmux split-window -v -t my_session:0.1
 	tmux attach-session -t my_session

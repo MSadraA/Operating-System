@@ -25,6 +25,7 @@ public:
     int accept_client(struct sockaddr_in &client_addr);
     string receive_message_from_client(int client_fd);
     string receive_message_from_server();
+    string send_and_receive_blocking(const string& message, int timeout_ms);
     void close_socket();
 
     // geters

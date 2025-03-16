@@ -36,6 +36,8 @@ void Client::handle_message(string msg){
     {
         cout << "Server : " << data << endl;
     }
+    else 
+        cout << "Server : " << data << endl;
 }
 
 void Client::run() {
@@ -134,7 +136,7 @@ void Client::show_problem(){
 
 void Client::submit_code() {
     if (current_code == "") {
-        cout << "No code written. Use 'write_code' first.\n";
+        cout << "No code written.\n";
         return;
     }
     string type = SBMT + DELIM;
