@@ -71,7 +71,14 @@ void Request_handler::handle_submit(int client_fd, string data){
     }
     if(team.has_submit)
     {
-        server.send_message_to_team(team , "You have already submitted your answer.");
+        string type = BRDCST + DELIM;
+        server.udp_socket.unicast_message( type + "You have already submitted your answer." 
+            , server.find_client_info(client_fd).client_udp_address);
+        return;
+    }
+    if(!server.is_contest_started){
+        string type = BRDCST + DELIM;
+        server.udp_socket.unicast_message( type + "Contest is not started" , server.find_client_info(client_fd).client_udp_address);
         return;
     }
     // make client tcp socket
@@ -85,18 +92,19 @@ void Request_handler::handle_submit(int client_fd, string data){
     string code = server.problems[server.cur_problem] + '\n' + data;
     string answer;
     answer = socket.send_and_receive_blocking(code , WAIT);
-    string msg = "";
+    string msg = "\n";
     msg += "ELPASED TIME : " + to_string(elapsed_time) + " seconds" + ' ';
     if(elapsed_time <= (TIME)/2 && answer == "PASS")
     {
         extra_point = score *(0.5);
-        msg += " You get " + to_string(extra_point) + " extra points.\n";
+        msg += " You get " + to_string(extra_point) + " extra points.";
     }
     else if(elapsed_time <= (TIME*3/4) && answer == "PASS")
     {
         extra_point = score *(0.2);
-        msg += " You get " + to_string(extra_point) + " extra points.\n";
+        msg += " You get " + to_string(extra_point) + " extra points.";
     }
+    msg += '\n';
     msg += "RESULT : " + answer + '\n';
     float final_score = score + extra_point;
     if(answer == "PASS")
