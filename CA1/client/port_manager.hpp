@@ -1,9 +1,7 @@
 #ifndef PORT_MANAGER_HPP
 #define PORT_MANAGER_HPP
 
-#include <set>
-#include <cstdlib>
-#include <ctime>
+#include "define.hpp"
 
 #define MIN  10000
 #define MAX  20000

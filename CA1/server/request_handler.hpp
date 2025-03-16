@@ -2,9 +2,6 @@
 #define REQUEST_HANDLER_HPP
 
 #include "define.hpp"
-#include <map>
-#include <functional>
-#include <stdexcept>
 
 class Server;
 

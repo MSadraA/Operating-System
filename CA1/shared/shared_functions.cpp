@@ -1,15 +1,16 @@
 #include "shared_functions.hpp"
 
 
-vector<string> splitString(const string& str, char delimiter) {
-    vector<string> tokens;
-    stringstream ss(str);
-    string token;
+std::vector<std::string> splitString(const std::string& str, char delimiter) {
+    std::vector<std::string> tokens;
+    size_t start = 0, end;
 
-    while (getline(ss, token, delimiter)) {
-        tokens.push_back(token);
+    while ((end = str.find(delimiter, start)) != std::string::npos) {
+        tokens.push_back(str.substr(start, end - start));
+        start = end + 1;
     }
 
+    tokens.push_back(str.substr(start)); 
     return tokens;
 }
 
@@ -48,8 +49,32 @@ std::string trim(const std::string& str) {
 }
 
 std::string format_time(time_t raw_time) {
-    std::tm* time_info = std::localtime(&raw_time); 
-    std::stringstream ss;
-    ss << std::put_time(time_info, "%H:%M:%S"); 
-    return ss.str();
+    std::tm* time_info = std::localtime(&raw_time);
+    char buffer[9]; // HH:MM:SS + null-terminator
+    std::sprintf(buffer, "%02d:%02d:%02d", time_info->tm_hour, time_info->tm_min, time_info->tm_sec);
+    return std::string(buffer);
 }
+
+void print(const std::string& text) {
+    write(STDOUT_FILENO, text.c_str(), text.size());
+}
+
+void print_error(const std::string& text) {
+    write(STDERR_FILENO, text.c_str(), text.size());
+}
+
+void read_line(std::string& input) {
+    input.clear();
+    char buffer[256];
+    ssize_t bytesRead = read(STDIN_FILENO, buffer, sizeof(buffer) - 1);
+
+    if (bytesRead > 0) {
+        buffer[bytesRead] = '\0';
+        input = buffer;
+
+        if (!input.empty() && input.back() == '\n') {
+            input.pop_back();
+        }
+    }
+}
+

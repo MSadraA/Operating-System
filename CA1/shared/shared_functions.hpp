@@ -1,28 +1,7 @@
 #ifndef SHARED_FUNCTIONS_HPP
 #define SHARED_FUNCTIONS_HPP
 
-#include <netinet/in.h>
-#include <vector>
-#include <poll.h>
-#include <map>
-#include <stdexcept>
-#include <string>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <cstring>
-#include <algorithm>
-#include <stdexcept>
-#include <unistd.h>
-#include <cstring>
-#include <memory>
-#include <signal.h>
-#include <fcntl.h>
-#include <time.h>
-#include <sys/timerfd.h>
-#include <iostream>
-#include <sstream>
-#include <random>
-#include <iomanip> 
+#include "define.hpp"
 
 using namespace std;
 
@@ -31,5 +10,9 @@ string get_address_as_string(sockaddr_in address);
 void split_by_delim(const std::string& input, char delim, std::string& type, std::string& data);
 std::string trim(const std::string& str);
 std::string format_time(time_t raw_time);
+void print(const std::string& text);
+void print_error(const std::string& text);
+string get_address_as_string(sockaddr_in address);
+void read_line(std::string& input);
 
 #endif
