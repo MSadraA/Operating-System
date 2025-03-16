@@ -20,12 +20,15 @@ void Client::handle_message(string msg){
     string req_type;
     string data;
     split_by_delim(msg , DELIM , req_type , data);
+    string tmp = "";
     if(req_type == MSG){
-        cout << "Message from your teammate : " << data << endl;
+        tmp = "Message from your teammate : " + data + "\n";
+        print(tmp);
     }
     else if(req_type == SHARE)
     {
-        cout << "Code from coder :" << data << endl;
+        tmp = "Code from coder :" + data + "\n";
+        print(tmp);
         current_code = data;
     }
     else if(req_type == PRBLM)
@@ -34,10 +37,13 @@ void Client::handle_message(string msg){
     }
     else if(req_type == BRDCST)
     {
-        cout << "Server : " << data << endl;
+        tmp = "Server : " + data + "\n";
+        print(tmp);
     }
-    else 
-        cout << "Server : " << data << endl;
+    else {
+        tmp = "Server : " + data + "\n";
+        print(tmp);
+    }
 }
 
 void Client::run() {
@@ -53,13 +59,13 @@ void Client::run() {
     while (running) {
         int poll_count = poll(fds, 2, TIME_OUT);  
         if (poll_count < 0) {
-            std::cerr << "Error in poll: " << strerror(errno) << std::endl;
+            print("Error in poll: " + std::string(strerror(errno)) + "\n");
             throw std::runtime_error("poll error");
         }
         // Console commands 
         if (fds[0].revents & POLLIN) {
             std::string command;
-            std::getline(std::cin, command);
+            read_line(command);
             if (command == "quit") {
                 stop();
                 break;
@@ -114,15 +120,16 @@ void Client::share(){
     tcp_socket.send_massage_to_server(msg_snd);
 }
 
-void Client::write_code() {    
-    cout << "Start writing your code. Type 'save' on a new line to finish.\n";
+void Client::write_code() {   
+    string tmp = "Start writing your code. Type 'save' on a new line to finish.\n";  
+    print(tmp);
     current_code = "";
     
     string line;
     while (true) {
-        getline(cin, line);
+        read_line(line);
         if (line == "save") {
-            cout << "Code saved successfully.\n";
+            print("Code saved successfully.\n");
             break;
         }
         current_code += line;
@@ -131,12 +138,13 @@ void Client::write_code() {
 
 
 void Client::show_problem(){
-    cout << "The problem is : " << current_problem_id << endl;
+    string tmp = "The problem is : " + current_problem_id + "\n";
+    print(tmp);
 }
 
 void Client::submit_code() {
     if (current_code == "") {
-        cout << "No code written.\n";
+        print("No code written.\n");
         return;
     }
     string type = SBMT + DELIM;
@@ -150,20 +158,18 @@ Client::~Client() {
 }
 
 void Client::help() {
-    std::cout << "Available commands:\n";
-    std::cout << "  help         - Show this help message\n";
-    std::cout << "  chat <msg>   - Send a message to your team\n";
-    std::cout << "  problem      - Show the current problem statement\n";
-
+    print("Available commands:\n");
+    print("  help         - Show this help message\n");
+    print("  chat <msg>   - Send a message to your team\n");
+    print("  problem      - Show the current problem statement\n");
     if (role == CODER) {
-        std::cout << "  code         - Enter coding mode to write your solution\n";
-        std::cout << "  share        - Share your code with your teammate\n";
+        print("  code         - Enter coding mode to write your solution\n");
+        print("  share        - Share your code with your teammate\n");
     } 
     else if (role == NAVIGATOR) {
-        std::cout << "  submit       - Submit the current code to the server\n";
+        print("  submit       - Submit the current code to the server\n");
     }
-
-    std::cout << std::endl;
+    print("\n");
 }
 
 void Client::process_command(const string& command) {
@@ -201,7 +207,7 @@ void Client::process_command(const string& command) {
            }
         }
         else {
-            std::cout << "Unknown command. Type 'help' for a list of commands." << std::endl;
+            print("Unknown command. Type 'help' for a list of commands.\n");
         }
     }
 }
@@ -223,15 +229,15 @@ int main(int argc, char* argv[]) {
         client.start();
     } 
     catch (const std::invalid_argument& e) {
-        std::cerr << "Invalid argument error: " << e.what() << std::endl;
+        print("Invalid argument error: " + std::string(e.what()) + "\n");
         return 1;
     }
     catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        print("Error: " + std::string(e.what()) + "\n");
         return 1;
     }
     catch (...) {
-        std::cerr << "Unknown error occurred!" << std::endl;
+        print("Unknown error occurred!\n");
         return 1;
     }
     return 0;

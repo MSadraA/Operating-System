@@ -99,7 +99,7 @@ void Server::check_console_poll(struct pollfd & stdin_poll){
     int stdin_poll_count = poll(&stdin_poll, 1, 0);
     if (stdin_poll_count > 0 && (stdin_poll.revents & POLLIN)) {
         std::string command;
-        std::getline(std::cin, command); 
+        read_line(command); 
         if (command != "quit" && command != "start") {
             processCommand(command);
         }
@@ -240,22 +240,35 @@ void Server::add_poll(int fd){
 
 // Server commands
 void Server::help() {
-    std::cout << "Available commands:" << std::endl;
-    std::cout << "  help    - Show this help message" << std::endl;
-    std::cout << "  status  - Show server status" << std::endl;
-    std::cout << "  start   - Start the server" << std::endl;
-    std::cout << "  quit    - Quit the server" << std::endl;
-    std::cout << "  stop    - Stop the server" << std::endl;
+    print("Available commands:\n");
+    print("  help    - Show this help message\n");
+    print("  status  - Show server status\n");
+    print("  start   - Start the server\n");
+    print("  quit    - Quit the server\n");
+    print("  stop    - Stop the server\n");
+    print("  contest    - Start the contest\n");
+    print("\n");
 }
 
 void Server::status() {
-    cout << "Number of users : " << clients.size() << endl;
-    cout << "Current Problem : " << problems[cur_problem] << endl;
-    cout << "Teams : " << endl;
-    for (auto x : teams)
-        cout << find_client_info(x.team_members.first).username << " and " 
-        << find_client_info(x.team_members.second).username << endl;       
+    string tmp1 = "Number of users : " + std::to_string(clients.size()) + "\n";
+    print(tmp1);
+
+    string tmp2 = "Current Problem : " + problems[cur_problem] + "\n";
+    print(tmp2);
+
+    string tmp3 = "Teams :\n";
+    print(tmp3);
+
+    for (auto& x : teams) {
+        string tmp4 = find_client_info(x.team_members.first).username + 
+                      " and " + 
+                      find_client_info(x.team_members.second).username + 
+                      "\n";
+        print(tmp4);
+    }
 }
+
 
 void Server::start() {
     running = true;
@@ -297,7 +310,7 @@ void Server::processCommand(const std::string& command) {
         start_contest();
     }
         else {
-        std::cout << "Unknown command. Type 'help' for a list of commands." << std::endl;
+        print("Unknown command. Type 'help' for a list of commands.\n");
     }
 }
 
@@ -376,9 +389,8 @@ int main(int argc, char* argv[]) {
         std::string command;
 
         while (true) {
-            std::cout << "> ";
-            std::getline(std::cin, command);
-
+            print("> ");
+            read_line(command);
             if (command == "quit") {
                 server.processCommand(command);
                 break;
@@ -388,7 +400,7 @@ int main(int argc, char* argv[]) {
 
         return 0;
     } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        print("Error: " + std::string(e.what()) + '\n');
         return 1;
     } 
 }

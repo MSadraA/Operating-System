@@ -84,7 +84,7 @@ void Tcp_socket::send_massage_to_server(string message)
 {
     ssize_t sent_bytes = send(tcp_socket, message.c_str(), message.size(), 0);
     if (sent_bytes == -1) {
-        std::cerr << "Error sending message: " << strerror(errno) << std::endl;
+        print("Error sending message: " + std::string(strerror(errno)) + "\n");
     }
 }
 
@@ -141,7 +141,7 @@ string Tcp_socket::send_and_receive_blocking(const string& message, int timeout_
 
     int poll_result = poll(&pfd, 1, timeout_ms);
     if (poll_result == 0) {
-        cout << "Timeout waiting for response!" << endl;
+        print("Timeout waiting for response!\n");
         return "ERROR_TIMEOUT";
     } else if (poll_result < 0) {
         perror("poll failed");

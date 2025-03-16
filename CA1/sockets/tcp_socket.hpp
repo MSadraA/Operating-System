@@ -2,6 +2,7 @@
 #define TCP_SOCKET_HPP
 
 #include "define.hpp"
+#include "shared_functions.hpp"
 
 class Tcp_socket {
 private:

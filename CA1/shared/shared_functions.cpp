@@ -59,10 +59,6 @@ void print(const std::string& text) {
     write(STDOUT_FILENO, text.c_str(), text.size());
 }
 
-void print_error(const std::string& text) {
-    write(STDERR_FILENO, text.c_str(), text.size());
-}
-
 void read_line(std::string& input) {
     input.clear();
     char buffer[256];
