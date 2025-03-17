@@ -120,21 +120,30 @@ void Client::share(){
     tcp_socket.send_massage_to_server(msg_snd);
 }
 
-void Client::write_code() {   
-    string tmp = "Start writing your code. Type 'save' on a new line to finish.\n";  
-    print(tmp);
-    current_code = "";
-    
+string Client::write_code(string before) {
     string line;
-    while (true) {
-        read_line(line);
-        if (line == "save") {
-            print("Code saved successfully.\n");
-            break;
+    read_line(line);
+    
+    if (line == "save") {
+        print("Code saved successfully.\n");
+        if (!before.empty() && before.back() == ';') {
+            before.pop_back();
         }
-        current_code += line;
+        return before;
     }
+    
+    string n_line = before + line;
+    
+    if (!line.empty()) {
+        if (line.back() != ':') 
+            return write_code(n_line + ";");
+        else 
+            return write_code(n_line);
+    }
+    else 
+        return write_code(before);
 }
+
 
 
 void Client::show_problem(){
@@ -192,7 +201,8 @@ void Client::process_command(const string& command) {
     else {
         if (role == CODER) {
            if(trimmed_command.rfind("code", 0) == 0){
-            write_code();
+            print("Start writing your code. Type 'save' on a new line to finish.\n");
+            current_code = write_code();
             return;
            }
            else if(trimmed_command.rfind("share", 0) == 0){

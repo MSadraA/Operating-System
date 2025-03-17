@@ -39,7 +39,7 @@ public:
     // Request
     void sendClientInfo();
     void send_message_to_team(string msg);
-    void write_code();
+    string write_code(string before = "");
     void submit_code();
     void share();
     void show_problem();
