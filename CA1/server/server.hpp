@@ -61,6 +61,7 @@ private:
     public:
     Server(int tcp_port_);
     void reset_submit();
+    void reset_points();
     void broadcast_message_to_teams(const std::string& message);
     bool is_name_unique(string uname);
     void make_teames();

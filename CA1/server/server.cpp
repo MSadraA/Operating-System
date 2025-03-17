@@ -114,6 +114,8 @@ void Server::send_message_to_team(const Team& team , string message){
 
 
 void Server::start_contest(){
+    cur_problem = 0;
+    reset_points();
     last_problem_time = std::chrono::steady_clock::now();
     auto now = std::chrono::system_clock::now();
     auto end_time = now + std::chrono::minutes(TIME/60 * MAX_PROBLEM);
@@ -137,6 +139,10 @@ void Server::reset_submit(){
         team.has_submit = false;
 }
 
+void Server::reset_points(){
+    for (auto& team : teams)
+        team.score = 0;
+}
 void Server::check_elpased_time(){
     auto now = std::chrono::steady_clock::now();
     auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(now - last_problem_time);
