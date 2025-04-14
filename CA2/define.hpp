@@ -14,13 +14,13 @@
 #include <sys/wait.h> 
 #include <sys/stat.h> 
 #include <cstdlib>
-
-
+#include <regex>
 
 
 using namespace std;
 
 const char DELIM = ',';
+
 
 enum {
     TITLE = 0,
@@ -38,6 +38,8 @@ enum {
     FEATURES,//
     MIN_REQUIREMENTS//
 };
+
+const int BUFF_SIZE = 1024;
 
 struct GameRecord {
     string title;
