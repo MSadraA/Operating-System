@@ -52,9 +52,24 @@ struct GameRecord {
     int all_review_number;
 };
 
+enum class GameField {
+    Title,
+    OriginalPrice,
+    DiscountPercent,
+    RecentReviewSummary,
+    AllReviewSummary,
+    RecentReviewNumber,
+    AllReviewNumber
+};
+
 struct WorkerInfo {
     int id;
     int pid;
+};
+
+struct Score{
+    string title;
+    float score;
 };
 
 //pipes

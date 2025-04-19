@@ -26,8 +26,8 @@ class Loader {
         void fill_min_records();
         double get_cpu_usage(int pid);
         void sort_workers_by_cpu_usage();
+        void make_worker_pipes();
         void dispatch_records_to_workers();
         void send_records_to_worker(const WorkerInfo& worker, const vector<GameRecord>& chunk);
 };
-
 #endif

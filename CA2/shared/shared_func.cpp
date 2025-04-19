@@ -90,3 +90,22 @@ void print_worker(const WorkerInfo& worker){
     cout << worker.id << " | "
          << worker.pid << endl;
 }
+
+string score_to_string(const Score& score) {
+    ostringstream oss;
+    oss << score.title << DELIM;
+    oss << score.score;
+    return oss.str();
+}
+Score string_to_score(const string& line) {
+    stringstream ss(line);
+    string token;
+    vector<string> fields;
+    while (getline(ss, token, DELIM)) {
+        fields.push_back(token);
+    }
+    Score score;
+    score.title = fields[0];
+    score.score = stof(fields[1]);
+    return score;
+}

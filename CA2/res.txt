@@ -12,6 +12,8 @@ g++ -Wall -Wextra -std=c++17 -Ishared -Isrc -o bin/extract_and_transform main/ex
 g++ -Wall -Wextra -std=c++17 -Ishared -Isrc -o bin/network_computing main/network_computing.cpp src/extractor.o src/loader.o src/transformer.o src/worker.o shared/shared_func.o
 [+] Building bin/read_and_dispatch
 g++ -Wall -Wextra -std=c++17 -Ishared -Isrc -o bin/read_and_dispatch main/read_and_dispatch.cpp src/extractor.o src/loader.o src/transformer.o src/worker.o shared/shared_func.o
+[+] Building bin/write_to_csv
+g++ -Wall -Wextra -std=c++17 -Ishared -Isrc -o bin/write_to_csv main/write_to_csv.cpp src/extractor.o src/loader.o src/transformer.o src/worker.o shared/shared_func.o
 [+] Running controller...
 ./bin/controller
 Worker 0 records: 
@@ -34,43 +36,146 @@ Worker 0 max record:
 Worker 0 min record: 
  | 1 | 1 | 1 | 3 | 22 | 134
 
+after scale: 
+Worker 0 records: 
+Baldur's Gate 3 | 1.31642 | 1 | 2 | 1 | 2 | 1
+Counter-Strike: Global Offensive | 1.1527 | 1 | 1 | 1 | 1 | 2
+Apex Legends | 1 | 1 | 1 | 1 | 1 | 1
+Forza Horizon 5 | 1.3687 | 1.57855 | 1 | 1 | 1 | 1
+Call of Duty | 1 | 1 | 1 | 1 | 1 | 1
+PUBG: BATTLEGROUNDS | 1 | 1 | 1 | 1 | 1 | 1
+Remnant II | 1.37099 | 1 | 1 | 1 | 1 | 1
+Cyberpunk 2077 | 1.31642 | 1.57875 | 1 | 1 | 1 | 1
 Worker 1 records: 
+Rust | 1.20727 | 1 | 1 | 1 | 1 | 1
+Dystopy | 1 | 1 | 1 | 1 | 1 | 1
+Grand Theft Auto V | 1.35997 | 1.28355 | 1 | 1 | 1 | 1
+Tom Clancy's Rainbow Six Siege | 1.10904 | 1 | 1 | 1 | 1 | 1
+Dead by Daylight | 1.1265 | 1 | 1 | 1 | 1 | 1
+Team Fortress 2 | 1.10358 | 1 | 1 | 1 | 1 | 1
+Worker 2 records: 
+Worker 0 max record: 
 Dota 2 | 92.62 | 54.9989 | 4 | 6 | 20072 | 2030312
+ | 92.62 | 85.6938 | 7 | 7 | 128900 | 7428921
+Worker 0 min record: 
 War Thunder | 1 | 1 | 3 | 4 | 7921 | 387917
+ | 1 | 1 | 1 | 3 | 22 | 134
+
 FINAL FANTASY XIV Online | 10.49 | 1 | 6 | 6 | 712 | 62085
+Sons Of The Forest | 14.49 | 1 | 6 | 6 | 3920 | 126694
 The Elder Scrolls Online | 19.99 | 1 | 4 | 6 | 1271 | 113584
+The Texas Chain Saw Massacre | 18.49 | 10.0054 | 6 | 6 | 1834 | 1215
 Warframe | 1 | 1 | 6 | 6 | 3458 | 539603
+Total War: WARHAMMER III | 46.99 | 1 | 2 | 4 | 2492 | 54852
 BattleBit Remastered | 12.99 | 1 | 6 | 6 | 15985 | 72918
+World of Warships | 51.88 | 29.9923 | 2 | 4 | 4639 | 127620
 Street Fighter 6 | 59.99 | 1 | 6 | 6 | 1885 | 13599
+PAYDAY 2 | 6.99 | 85.6938 | 6 | 6 | 3498 | 412663
 Phasmophobia | 7.99 | 1 | 6 | 7 | 11251 | 475199
+The Sims 4 | 1 | 1 | 6 | 6 | 3744 | 108840
 EA SPORTS FIFA 23 | 69.99 | 75.0107 | 3 | 3 | 5860 | 110345
+Forza Horizon 4 | 27.99 | 67.0239 | 6 | 6 | 2525 | 176232
 DAVE THE DIVER | 10.49 | 1 | 7 | 7 | 10147 | 48657
+Red Dead Redemption 2 | 34.99 | 1 | 6 | 6 | 13910 | 404364
 Destiny 2 | 1 | 1 | 3 | 6 | 4907 | 558640
+Hunt: Showdown | 21.9 | 1 | 4 | 6 | 2624 | 135353
 ELDEN RING | 34.99 | 1 | 6 | 6 | 8066 | 524992
+Football Manager 2023 | 39.99 | 60.015 | 6 | 6 | 676 | 11000
 Echo Point Nova | 1 | 1 | 1 | 6 | 138 | 134
+Hogwarts Legacy | 26.99 | 1 | 6 | 6 | 2497 | 154790
 Yu-Gi-Oh! Master Duel | 1 | 1 | 3 | 4 | 1223 | 63436
+Project Zomboid | 10.49 | 1 | 6 | 6 | 6245 | 169738
+Worker 1 max record: 
+Ready or Not | 24.99 | 1 | 6 | 6 | 2783 | 93693
+Worker 2 max record: 
+ | 92.62 | 85.6938 | 7 | 7 | 128900 | 7428921
+ | 92.62 | 85.6938 | 7 | 7 | 128900 | 7428921
+Worker 1 min record: 
+Worker 2 min record: 
+ | 1 | 1 | 1 | 3 | 22 | 134
+ | 1 | 1 | 1 | 3 | 22 | 134
+
+
+after scale: 
+after scale: 
+Worker 1 records: 
+Worker 2 records: 
+Dota 2 | 2 | 1.63758 | 1 | 1 | 1 | 1
+Sons Of The Forest | 1.14724 | 1 | 1 | 1 | 1 | 1
+War Thunder | 1 | 1 | 1 | 1 | 1 | 1
+The Texas Chain Saw Massacre | 1.1909 | 1.10633 | 1 | 1 | 1 | 1
+FINAL FANTASY XIV Online | 1.10358 | 1 | 1 | 1 | 1 | 1
+Total War: WARHAMMER III | 1.50196 | 1 | 1 | 1 | 1 | 1
+World of Warships | 1.55534 | 1.34232 | 1 | 1 | 1 | 1
+The Elder Scrolls Online | 1.20727 | 1 | 1 | 1 | 1 | 1
+PAYDAY 2 | 1.06538 | 2 | 1 | 1 | 1 | 1
+Warframe | 1 | 1 | 1 | 1 | 1 | 1
+The Sims 4 | 1 | 1 | 1 | 1 | 1 | 1
+Forza Horizon 4 | 1.29459 | 1.77956 | 1 | 1 | 1 | 1
+BattleBit Remastered | 1.13087 | 1 | 1 | 1 | 1 | 1
+Red Dead Redemption 2 | 1.37099 | 1 | 1 | 1 | 1 | 1
+Street Fighter 6 | 1.64386 | 1 | 1 | 1 | 1 | 1
+Hunt: Showdown | 1.22812 | 1 | 1 | 1 | 1 | 1
+Phasmophobia | 1.07629 | 1 | 1 | 2 | 1 | 1
+Football Manager 2023 | 1.42556 | 1.6968 | 1 | 1 | 1 | 1
+EA SPORTS FIFA 23 | 1.753 | 1.87386 | 1 | 1 | 1 | 1
+Hogwarts Legacy | 1.28367 | 1 | 1 | 1 | 1 | 1
+DAVE THE DIVER | 1.10358 | 1 | 2 | 2 | 1 | 1
+Project Zomboid | 1.10358 | 1 | 1 | 1 | 1 | 1
+Ready or Not | 1.26184 | 1 | 1 | 1 | 1 | 1
+Destiny 2 | 1 | 1 | 1 | 1 | 1 | 1
+Worker 2 max record: 
+ELDEN RING | 1.37099 | 1 | 1 | 1 | 1 | 1
+ | 92.62 | 85.6938 | 7 | 7 | 128900 | 7428921
+Worker 2 min record: 
+Echo Point Nova | 1 | 1 | 1 | 1 | 1 | 1
+ | 1 | 1 | 1 | 3 | 22 | 134
+
+Yu-Gi-Oh! Master Duel | 1 | 1 | 1 | 1 | 1 | 1
 Worker 1 max record: 
  | 92.62 | 85.6938 | 7 | 7 | 128900 | 7428921
 Worker 1 min record: 
  | 1 | 1 | 1 | 3 | 22 | 134
 
-Worker 2 records: 
-Sons Of The Forest | 14.49 | 1 | 6 | 6 | 3920 | 126694
-The Texas Chain Saw Massacre | 18.49 | 10.0054 | 6 | 6 | 1834 | 1215
-Total War: WARHAMMER III | 46.99 | 1 | 2 | 4 | 2492 | 54852
-World of Warships | 51.88 | 29.9923 | 2 | 4 | 4639 | 127620
-PAYDAY 2 | 6.99 | 85.6938 | 6 | 6 | 3498 | 412663
-The Sims 4 | 1 | 1 | 6 | 6 | 3744 | 108840
-Forza Horizon 4 | 27.99 | 67.0239 | 6 | 6 | 2525 | 176232
-Red Dead Redemption 2 | 34.99 | 1 | 6 | 6 | 13910 | 404364
-Hunt: Showdown | 21.9 | 1 | 4 | 6 | 2624 | 135353
-Football Manager 2023 | 39.99 | 60.015 | 6 | 6 | 676 | 11000
-Hogwarts Legacy | 26.99 | 1 | 6 | 6 | 2497 | 154790
-Project Zomboid | 10.49 | 1 | 6 | 6 | 6245 | 169738
-Ready or Not | 24.99 | 1 | 6 | 6 | 2783 | 93693
-Worker 2 max record: 
- | 92.62 | 85.6938 | 7 | 7 | 128900 | 7428921
-Worker 2 min record: 
- | 1 | 1 | 1 | 3 | 22 | 134
-
+Baldur's Gate 3,30.3855
+Counter-Strike: Global Offensive,17.3506
+Apex Legends,10
+Forza Horizon 5,11.5333
+Call of Duty,10
+PUBG: BATTLEGROUNDS,10
+Remnant II,7.29401
+Cyberpunk 2077,11.9928
+Rust,8.28316
+Dystopy,10
+Grand Theft Auto V,9.43809
+Tom Clancy's Rainbow Six Siege,9.01683
+Dead by Daylight,8.87705
+Team Fortress 2,9.06142
+Dota 2,8.18789
+War Thunder,10
+FINAL FANTASY XIV Online,9.06142
+The Elder Scrolls Online,8.28316
+Warframe,10
+BattleBit Remastered,8.84278
+Street Fighter 6,6.08326
+Phasmophobia,18.5823
+EA SPORTS FIFA 23,10.6894
+DAVE THE DIVER,36.2457
+Destiny 2,10
+ELDEN RING,7.29401
+Echo Point Nova,10
+Yu-Gi-Oh! Master Duel,10
+Sons Of The Forest,8.71658
+The Texas Chain Saw Massacre,9.28988
+Total War: WARHAMMER III,6.65795
+World of Warships,8.63041
+PAYDAY 2,18.7727
+The Sims 4,10
+Forza Horizon 4,13.7462
+Red Dead Redemption 2,7.29401
+Hunt: Showdown,8.14255
+Football Manager 2023,11.9027
+Hogwarts Legacy,7.79015
+Project Zomboid,9.06142
+Ready or Not,7.92492
 rm src/transformer.o src/extractor.o shared/shared_func.o src/worker.o src/loader.o

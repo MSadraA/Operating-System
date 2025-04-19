@@ -1,21 +1,29 @@
 #include "define.hpp"
 
-int main() { 
+
+
+int main() {
     pid_t extract_pid = fork(); 
     if (extract_pid == 0) { 
         execl("./bin/extract_and_transform", "extract_and_transform", nullptr); 
         exit(1); 
     }
-    
+
     pid_t loader_pid = fork();
     if (loader_pid == 0) {
         execl("./bin/read_and_dispatch", "read_and_dispatch", nullptr);
         exit(1);
     }
-
+    sleep(1); 
     pid_t network_pid = fork();
     if (network_pid == 0) {
         execl("./bin/network_computing", "network_computing", nullptr);
+        exit(1);
+    }
+
+    pid_t write_pid = fork();
+    if (write_pid == 0) {
+        execl("./bin/write_to_csv", "write_to_csv", nullptr);
         exit(1);
     }
 
@@ -23,6 +31,7 @@ int main() {
     waitpid(extract_pid, &status, 0);
     waitpid(loader_pid, &status, 0);
     waitpid(network_pid, &status, 0);
+    waitpid(write_pid, &status, 0);
 
     return 0;
 }

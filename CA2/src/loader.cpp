@@ -31,15 +31,8 @@ void Loader::run() {
     read_from_pipe();
     fill_extreme_records();
     read_registered_workers();
+    make_worker_pipes();
     dispatch_records_to_workers();
-    // for (const auto& record : records) {
-    //     print_record(record);
-    // }
-    // for (const auto& worker : workers) {
-    //     print_worker(worker);
-    // }
-    // print_record(max_records);
-    // print_record(min_records);
 }
 
 void Loader::read_registered_workers(){
@@ -138,8 +131,6 @@ void Loader::sort_workers_by_cpu_usage(){
 
 void Loader::send_records_to_worker(const WorkerInfo& worker, const vector<GameRecord>& chunk) {
     string pipe_path = WORKER_PIPE_PATH + to_string(worker.id);
-    mkfifo(pipe_path.c_str(), 0666);
-
     int fd = open(pipe_path.c_str(), O_WRONLY);
     if (fd < 0) {
         perror("open worker pipe");
@@ -160,7 +151,7 @@ void Loader::send_records_to_worker(const WorkerInfo& worker, const vector<GameR
 
 
 void Loader::dispatch_records_to_workers(){
-    
+
         sort_workers_by_cpu_usage();
 
         int num_workers = workers.size();
@@ -182,5 +173,12 @@ void Loader::show_cpu_usage(){
     // Print CPU usage for each worker
     for(auto worker : workers){
         cout << "Worker " << worker.id << " CPU usage: " << get_cpu_usage(worker.pid) << endl;
+    }
+}
+
+void Loader::make_worker_pipes(){
+    for(int i = 0 ; i < workers_num ; i++){
+        string pipe_path = WORKER_PIPE_PATH + to_string(i);
+        mkfifo(pipe_path.c_str() , 0666);
     }
 }
