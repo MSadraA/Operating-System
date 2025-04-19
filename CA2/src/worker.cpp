@@ -6,10 +6,7 @@ Worker::Worker(int id, const string& pipe_path , int write_pipe)
 void Worker::run() {
     register_self();
     read_records();
-    show_records();
     min_max_scale();
-    cout << "after scale: "<< endl;
-    show_records();
     calculate_indicators();
     write_to_pipe();
 }
@@ -75,7 +72,7 @@ void Worker::read_records() {
             string line = buffer_str.substr(0, pos);
             buffer_str.erase(0, pos + 1);
 
-            GameRecord record = from_string(line);
+            GameRecord record = string_to_game_record(line);
             temp_records.push_back(record);
         }
     }

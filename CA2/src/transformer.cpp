@@ -33,7 +33,7 @@ void Transformer::process() {
             string line = temp.substr(0, pos);
             temp.erase(0, pos + 1);
             GameRecord record = parse_record(line);
-            string out = to_string(record) + "\n";
+            string out = game_record_to_string(record) + "\n";
             write(output_fd, out.c_str(), out.size());
         }
     }
@@ -54,8 +54,9 @@ GameRecord Transformer::parse_record(const string& row) {
     float disc_price = parse_price(fields[DISCOUNTED_PRICE]);
 
     record.original_price = orig_price;
-    float scale = disc_price / orig_price;
-    record.discount_percent = (scale == 1.0f) ? 1.0f : (1.0f - scale) * 100.0f;
+   
+    float discount_percent = ((orig_price - disc_price) / orig_price) * 100.0f;
+    record.discount_percent = (discount_percent == 0) ? 1:discount_percent;
 
     // Review summaries mapped to int
     record.recent_review_summary = convert_review_to_label(fields[RECENT_REVIEW_SUMMARY]);
@@ -94,7 +95,7 @@ int Transformer::extract_review_count(const string& text) {
     smatch match;
 
     if (regex_search(text, match, pattern)) {
-        return stoi(match[1]);
+        return stof(match[1]);
     }
 
     return 0;

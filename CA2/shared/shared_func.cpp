@@ -2,7 +2,7 @@
 #include "define.hpp"
 
 
-string to_string(const GameRecord& record) { 
+string game_record_to_string(const GameRecord& record) { 
     ostringstream oss; 
     oss << record.title << DELIM; 
     oss << record.original_price << DELIM; 
@@ -14,7 +14,7 @@ string to_string(const GameRecord& record) {
     return oss.str(); 
 }
 
-GameRecord from_string(const string& line) { 
+GameRecord string_to_game_record(const string& line) { 
     stringstream ss(line); 
     string token; 
     vector<string> fields; 
@@ -25,10 +25,10 @@ GameRecord from_string(const string& line) {
     record.title = fields[0]; 
     record.original_price = stof(fields[1]); 
     record.discount_percent = stof(fields[2]); 
-    record.recent_review_summary = stoi(fields[3]); 
-    record.all_review_summary = stoi(fields[4]); 
-    record.recent_review_number = stoi(fields[5]); 
-    record.all_review_number = stoi(fields[6]); 
+    record.recent_review_summary = stof(fields[3]); 
+    record.all_review_summary = stof(fields[4]); 
+    record.recent_review_number = stof(fields[5]); 
+    record.all_review_number = stof(fields[6]); 
     return record;
 }
 
@@ -108,4 +108,16 @@ Score string_to_score(const string& line) {
     score.title = fields[0];
     score.score = stof(fields[1]);
     return score;
+}
+
+void sort_scores(vector<Score>& scores) {
+    sort(scores.begin(), scores.end(), [](const Score& a, const Score& b) {
+        return a.score > b.score;
+    });
+}
+void print_scores(const vector<Score>& scores) {
+    for (const auto& score : scores) {
+        cout << score.title << " , " << score.score << endl;
+    }
+    cout << endl;
 }

@@ -46,10 +46,10 @@ struct GameRecord {
     string title;
     float original_price;
     float discount_percent;
-    int recent_review_summary;
-    int all_review_summary;
-    int recent_review_number;
-    int all_review_number;
+    float recent_review_summary;
+    float all_review_summary;
+    float recent_review_number;
+    float all_review_number;
 };
 
 enum class GameField {
@@ -77,7 +77,7 @@ const string EXTRACT_PIPE_PATH = "pipes/extract_pipe";
 const string REGISTER_PIPE_PATH = "pipes/register_pipe";
 const string WORKER_PIPE_PATH = "pipes/worker_pipe_";
 const string FINAL_RES_PIPE_PATH = "pipes/final_res_pipe";
-
+const string OUTPUT_FILE = "GameRanking.csv";
 const int DELAY = 100000; // 100 ms;
 
 #endif

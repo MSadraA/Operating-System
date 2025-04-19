@@ -37,10 +37,25 @@ int main() {
 
     close(fd);
 
-    for (const auto& res : results) {
-        cout << res << endl;
+    // Convert results to Score objects and sort them
+    vector<Score> scores;
+    for(const auto& res : results) {
+        Score score = string_to_score(res);
+        scores.push_back(score);
+    }
+    sort_scores(scores);
+
+    //Write scores to csv
+    ofstream file(OUTPUT_FILE);
+    if (!file.is_open()) {
+        perror("Failed to open output file");
+        return 1;
+    }
+    for (const auto& score : scores) {
+        file << score_to_string(score) << endl;
     }
 
+    file.close();
     return 0;
 
 }

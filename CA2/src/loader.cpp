@@ -27,7 +27,7 @@ void Loader::read_from_pipe() {
             string line = temp.substr(0, pos);
             temp.erase(0, pos + 1);
     
-            GameRecord record = from_string(line);
+            GameRecord record = string_to_game_record(line);
             records.push_back(record);
         }
     }
@@ -52,7 +52,7 @@ void Loader::read_registered_workers(){
         return;
     }
 
-    while (workers.size() < workers_num) {
+    while (int(workers.size()) < workers_num) {
         string line;
         char ch;
         while (read(fd, &ch, 1) == 1) {
@@ -157,13 +157,13 @@ void Loader::send_records_to_worker(const WorkerInfo& worker, const vector<GameR
     }
 
     for (const GameRecord& r : chunk) {
-        string line = to_string(r) + "\n";
+        string line = game_record_to_string(r) + "\n";
         if (write(fd, line.c_str(), line.size()) < 0) {
             perror("write record failed");
         }
     }
-    string min_str = to_string(min_records) + "\n";
-    string max_str = to_string(max_records) + "\n";
+    string min_str = game_record_to_string(min_records) + "\n";
+    string max_str = game_record_to_string(max_records) + "\n";
 
     if (write(fd, min_str.c_str(), min_str.size()) < 0) 
         perror("write min failed");
