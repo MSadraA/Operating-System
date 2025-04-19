@@ -9,50 +9,65 @@ Loader::Loader(const string& in_pipe_path_ , const string& register_path_ , int 
 }
 
 void Loader::read_from_pipe() {
-    while (access(in_pipe_path.c_str(), F_OK) == -1) {
-        usleep(100000); // 100 ms
-    }
-
-    ifstream pipe(in_pipe_path);
-    if (!pipe.is_open()) {
-        cerr << "Failed to open pipe: " << in_pipe_path << endl;
+    int fd = open(in_pipe_path.c_str(), O_RDONLY);
+    if (fd < 0) {
+        perror(("open failed: " + in_pipe_path).c_str());
         return;
     }
-
-    string line;
-    while (getline(pipe, line)) {
-        records.push_back(from_string(line));
+    
+    char buffer[BUFF_SIZE];
+    string temp;
+    ssize_t bytes_read;
+    
+    while ((bytes_read = read(fd, buffer, sizeof(buffer))) > 0) {
+        temp.append(buffer, bytes_read);
+    
+        size_t pos;
+        while ((pos = temp.find('\n')) != string::npos) {
+            string line = temp.substr(0, pos);
+            temp.erase(0, pos + 1);
+    
+            GameRecord record = from_string(line);
+            records.push_back(record);
+        }
     }
-
-    pipe.close();
+    close(fd);
 }
 
 void Loader::run() {
     read_from_pipe();
     fill_extreme_records();
     read_registered_workers();
-    make_worker_pipes();
+    // make_worker_pipes();
     dispatch_records_to_workers();
 }
 
 void Loader::read_registered_workers(){
-    // make register pipe
-    mkfifo(register_path.c_str() , 0666);
-    // just open from the reader side
     int dummy = open(register_path.c_str(), O_RDONLY | O_NONBLOCK);
     close(dummy);
 
     int fd = open(register_path.c_str(), O_RDONLY);
-    for (int i = 0; i < workers_num; ++i) {
+    if (fd < 0) {
+        perror("open register pipe");
+        return;
+    }
+
+    while (workers.size() < workers_num) {
         string line;
         char ch;
         while (read(fd, &ch, 1) == 1) {
             if (ch == '\n') break;
             line += ch;
         }
-        workers.push_back(string_to_worker(line));
-    }
-    close(fd);
+        if (!line.empty()) {
+            workers.push_back(string_to_worker(line));
+        } else {
+            usleep(DELAY);
+        }
+}
+
+close(fd);
+
 }
 
 void Loader::fill_max_records(){
@@ -131,22 +146,33 @@ void Loader::sort_workers_by_cpu_usage(){
 
 void Loader::send_records_to_worker(const WorkerInfo& worker, const vector<GameRecord>& chunk) {
     string pipe_path = WORKER_PIPE_PATH + to_string(worker.id);
+    while (access(pipe_path.c_str(), F_OK) == -1) {
+        usleep(DELAY);
+    }
+
     int fd = open(pipe_path.c_str(), O_WRONLY);
     if (fd < 0) {
-        perror("open worker pipe");
+        perror(("open worker pipe: " + pipe_path).c_str());
         return;
     }
 
     for (const GameRecord& r : chunk) {
-        string s = to_string(r) + "\n";
-        write(fd, s.c_str(), s.size());
+        string line = to_string(r) + "\n";
+        if (write(fd, line.c_str(), line.size()) < 0) {
+            perror("write record failed");
+        }
     }
-    string min = to_string(min_records) + "\n";
-    string max = to_string(max_records) + "\n";
-    write(fd, min.c_str(), min.size());
-    write(fd, max.c_str(), max.size());
+    string min_str = to_string(min_records) + "\n";
+    string max_str = to_string(max_records) + "\n";
 
+    if (write(fd, min_str.c_str(), min_str.size()) < 0) 
+        perror("write min failed");
+    
+    if (write(fd, max_str.c_str(), max_str.size()) < 0) 
+        perror("write max failed");
+    
     close(fd);
+
 }
 
 
@@ -173,12 +199,5 @@ void Loader::show_cpu_usage(){
     // Print CPU usage for each worker
     for(auto worker : workers){
         cout << "Worker " << worker.id << " CPU usage: " << get_cpu_usage(worker.pid) << endl;
-    }
-}
-
-void Loader::make_worker_pipes(){
-    for(int i = 0 ; i < workers_num ; i++){
-        string pipe_path = WORKER_PIPE_PATH + to_string(i);
-        mkfifo(pipe_path.c_str() , 0666);
     }
 }

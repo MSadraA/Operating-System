@@ -1,8 +1,18 @@
 #include "define.hpp"
 
-
+void make_pipes(int worker_num){
+    mkfifo(EXTRACT_PIPE_PATH.c_str() , 0666);
+    mkfifo(REGISTER_PIPE_PATH.c_str() , 0666);
+    mkfifo(FINAL_RES_PIPE_PATH.c_str() , 0666);
+    for(int i = 0 ; i < worker_num ; i++){
+        string path = WORKER_PIPE_PATH + to_string(i);
+        mkfifo(path.c_str() , 0666);
+    }
+}
 
 int main() {
+    make_pipes(3);
+
     pid_t extract_pid = fork(); 
     if (extract_pid == 0) { 
         execl("./bin/extract_and_transform", "extract_and_transform", nullptr); 
@@ -14,7 +24,7 @@ int main() {
         execl("./bin/read_and_dispatch", "read_and_dispatch", nullptr);
         exit(1);
     }
-    sleep(1); 
+    
     pid_t network_pid = fork();
     if (network_pid == 0) {
         execl("./bin/network_computing", "network_computing", nullptr);

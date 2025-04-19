@@ -11,9 +11,6 @@ const vector<string> csv_files = {
 };
 
 int main() {
-    //make named pipe
-    mkfifo(EXTRACT_PIPE_PATH.c_str(), 0666);
-
     int extract_pipes[PROC_NUM][2];
     int transformer_pipes[PROC_NUM][2];
     vector<pid_t> children;
@@ -76,6 +73,4 @@ int main() {
     for (pid_t pid : children) {
         waitpid(pid, nullptr, 0);
     }
-
-    
 }

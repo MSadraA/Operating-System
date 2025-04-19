@@ -2,6 +2,7 @@
     "files.associations": {
         "cmath": "cpp",
         "thread": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "*.tcc": "cpp"
     }
 }

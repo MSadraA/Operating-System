@@ -11,23 +11,36 @@ int main() {
     vector<string> results;
 
     while (access(FINAL_RES_PIPE_PATH.c_str(), F_OK) == -1) {
-        usleep(100000); // 100 ms
+        usleep(DELAY); // 100ms
     }
 
-    ifstream pipe(FINAL_RES_PIPE_PATH);
-    if (!pipe.is_open()) {
-        cerr << "Failed to open pipe: " << FINAL_RES_PIPE_PATH << endl;
-        return 0;
+    int fd = open(FINAL_RES_PIPE_PATH.c_str(), O_RDONLY);
+    if (fd < 0) {
+        perror("Failed to open final result pipe");
+        return 1;
     }
 
-    string line;
-    while (getline(pipe, line)) {
-        results.push_back(line);
-    }
-    pipe.close();
+    char buffer[BUFF_SIZE];
+    string temp;
+    ssize_t bytes_read;
 
-    for(auto res : results){
+    while ((bytes_read = read(fd, buffer, sizeof(buffer))) > 0) {
+        temp.append(buffer, bytes_read);
+
+        size_t pos;
+        while ((pos = temp.find('\n')) != string::npos) {
+            string line = temp.substr(0, pos);
+            temp.erase(0, pos + 1);
+            results.push_back(line);
+        }
+    }
+
+    close(fd);
+
+    for (const auto& res : results) {
         cout << res << endl;
     }
+
+    return 0;
 
 }

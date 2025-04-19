@@ -78,4 +78,6 @@ const string REGISTER_PIPE_PATH = "pipes/register_pipe";
 const string WORKER_PIPE_PATH = "pipes/worker_pipe_";
 const string FINAL_RES_PIPE_PATH = "pipes/final_res_pipe";
 
+const int DELAY = 100000; // 100 ms;
+
 #endif

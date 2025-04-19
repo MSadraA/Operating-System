@@ -15,24 +15,37 @@ void Worker::run() {
 }
 
 void Worker::register_self() {
-
+   int wait_time = 0; const int max_wait_time = 5000000; //5 sec
+        
     while (access(register_path.c_str(), F_OK) == -1) {
-        usleep(100000); // 100 ms
+        usleep(DELAY); // 100ms
+        wait_time += DELAY;
+        if (wait_time >= max_wait_time) {
+            cerr << "[Worker " << id << "] Timeout: register pipe not found\n";
+            return;
+        }
     }
-
-    int fd = open(register_path.c_str(), O_WRONLY);
-    if (fd < 0) {
-        perror("open worker pipe");
-        return;
+    
+    int fd = -1;
+    wait_time = 0;
+    while ((fd = open(register_path.c_str(), O_WRONLY)) == -1) {
+        usleep(DELAY);
+        wait_time += DELAY;
+        if (wait_time >= max_wait_time) {
+            cerr << "[Worker " << id << "] Timeout: failed to open register pipe for writing\n";
+            return;
+        }
     }
-    // Register this worker
+    
     WorkerInfo info;
     info.id = id;
     info.pid = getpid();
     string worker_info = worker_to_string(info) + "\n";
+    
     ssize_t w = write(fd, worker_info.c_str(), worker_info.size());
-    if (w == -1) perror("write failed");
-
+    if (w == -1) {
+        perror("write failed");
+    }
     close(fd);
 }
 
@@ -40,41 +53,46 @@ void Worker::read_records() {
     string worker_path = WORKER_PIPE_PATH + to_string(id);
 
     while (access(worker_path.c_str(), F_OK) == -1) {
-        usleep(100000); // 100 ms
+        usleep(DELAY);
     }
 
-    vector<GameRecord> records;
     int fd = open(worker_path.c_str(), O_RDONLY);
     if (fd < 0) {
-        perror("open worker pipe");
+        perror(("open worker pipe: " + worker_path).c_str());
         return;
     }
 
+    vector<GameRecord> temp_records;
+    string buffer_str;
     char buffer[BUFF_SIZE];
-    string temp;
     ssize_t bytes_read;
 
     while ((bytes_read = read(fd, buffer, sizeof(buffer))) > 0) {
-        temp.append(buffer, bytes_read);
+        buffer_str.append(buffer, bytes_read);
+
         size_t pos;
-        while ((pos = temp.find('\n')) != string::npos) {
-            string line = temp.substr(0, pos);
-            temp.erase(0, pos + 1);
+        while ((pos = buffer_str.find('\n')) != string::npos) {
+            string line = buffer_str.substr(0, pos);
+            buffer_str.erase(0, pos + 1);
+
             GameRecord record = from_string(line);
-            records.push_back(record);
+            temp_records.push_back(record);
         }
     }
 
     close(fd);
-    if (records.size() >= 2) {
-        max_record = records.back();
-        records.pop_back();
-        min_record = records.back();
-        records.pop_back();
-    } else {
-        cerr << "[Worker " << id << "] Not enough records to extract min/max\n";
+
+    if (temp_records.size() < 2) {
+        cerr << "[Worker " << id << "] Not enough records to extract min/max. Got only " 
+                  << temp_records.size() << "\n";
+        return;
     }
-    this->records = records;
+
+    max_record = temp_records.back(); temp_records.pop_back();
+    min_record = temp_records.back(); temp_records.pop_back();
+
+    this->records = move(temp_records);
+
 }
 
 void Worker::show_records() {

@@ -6,27 +6,31 @@
 int main() {
     int worker_num = 3;
 
-    //make named pipe
-    mkfifo(FINAL_RES_PIPE_PATH.c_str(), 0666);
     int network_pipe[worker_num][2];
     vector<pid_t> children;
 
     for (int i = 0; i < worker_num; ++i) {
-        pipe(network_pipe[i]);
+        if (pipe(network_pipe[i]) < 0) {
+            perror("pipe creation failed");
+            return 1;
+        }
+    }
+
+    for (int i = 0; i < worker_num; ++i) {
         pid_t pid = fork();
 
         if (pid == 0) {
-            // child process (Worker)
-            close(network_pipe[i][0]); //write only
-            Worker worker(i, REGISTER_PIPE_PATH , network_pipe[i][1]);
+            close(network_pipe[i][0]);
+
+            Worker worker(i, REGISTER_PIPE_PATH, network_pipe[i][1]);
             worker.run();
+
+            close(network_pipe[i][1]);  
             return 0;
         }
-        children.push_back(pid);
-    }
 
-    for(int i = 0 ; i < worker_num ; i++){
         close(network_pipe[i][1]);
+        children.push_back(pid);
     }
 
     int final_fd = open(FINAL_RES_PIPE_PATH.c_str(), O_WRONLY);
@@ -46,8 +50,8 @@ int main() {
 
     close(final_fd);
 
-    for (int i = 0; i < worker_num; ++i) {
-        wait(nullptr);
+    for (pid_t child : children) {
+        waitpid(child, nullptr, 0);
     }
 
     return 0;
