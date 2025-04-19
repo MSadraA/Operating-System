@@ -20,6 +20,7 @@
 using namespace std;
 
 const char DELIM = ',';
+const char REC_DELIM = '|';
 
 
 enum {
@@ -50,5 +51,16 @@ struct GameRecord {
     int recent_review_number;
     int all_review_number;
 };
+
+struct WorkerInfo {
+    int id;
+    int pid;
+};
+
+//pipes
+const string EXTRACT_PIPE_PATH = "pipes/extract_pipe";
+const string REGISTER_PIPE_PATH = "pipes/register_pipe";
+const string WORKER_PIPE_PATH = "pipes/worker_pipe_";
+const string FINAL_RES_PIPE_PATH = "pipes/final_res_pipe";
 
 #endif

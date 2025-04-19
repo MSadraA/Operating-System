@@ -1,55 +1,49 @@
-# Compiler and flags
+# Compiler settings
 CXX := g++
-CXXFLAGS := -Wall -Wextra -std=c++17
+CXXFLAGS := -Wall -Wextra -std=c++17 -Ishared -Isrc
 
-# Executable names
-BINARIES := extract_and_transform check_pipe
+# Directories
+BINDIR := bin
+SRCDIR := src
+SHAREDDIR := shared
+MAINDIR := main
 
-# Source files per binary
-SRC_EXTRACT := extract_and_transform.cpp extractor.cpp transformer.cpp shared_func.cpp
-SRC_CHECK := check_pipe.cpp
+# Source files
+SRC := $(wildcard $(SRCDIR)/*.cpp) $(wildcard $(SHAREDDIR)/*.cpp)
+OBJ := $(SRC:.cpp=.o)
+
+# Apps with main() (each will become a binary)
+APPS := $(basename $(notdir $(wildcard $(MAINDIR)/*.cpp)))
+BINAPPS := $(addprefix $(BINDIR)/,$(APPS))
+
+# Default target
+.PHONY: all
+all: $(BINDIR) $(BINAPPS)
+
+# Ensure bin/ exists
+$(BINDIR):
+	mkdir -p $(BINDIR)
+
+# Build each binary from main/
+$(BINDIR)/%: $(MAINDIR)/%.cpp $(OBJ)
+	@echo "[+] Building $@"
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
 # Object files
-OBJ_EXTRACT := $(SRC_EXTRACT:.cpp=.o)
-OBJ_CHECK := $(SRC_CHECK:.cpp=.o)
-
-# Default build
-.PHONY: all
-all: $(BINARIES)
-
-# Build extract_and_transform
-extract_and_transform: $(OBJ_EXTRACT)
-	$(CXX) $(CXXFLAGS) -o $@ $^
-
-# Build check_pipe
-check_pipe: $(OBJ_CHECK)
-	$(CXX) $(CXXFLAGS) -o $@ $^
-
-# Compile .cpp to .o
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Run extract (producer)
-.PHONY: run_extract
-run_extract: extract_and_transform
-	./extract_and_transform
+# Run controller as default executable
+.PHONY: run
+run: all
+	@echo "[+] Running controller..."
+	./$(BINDIR)/controller
 
-# Run check (consumer)
-.PHONY: run_check
-run_check: check_pipe
-	./check_pipe
 
-# Run both in order (2 terminals)
-.PHONY: test_pipe
-test_pipe: extract_and_transform check_pipe
-	@echo "[+] Running extract_and_transform in background..."
-	./extract_and_transform &
-
-	@echo "[+] Running check_pipe to read from pipe..."
-	./check_pipe
-
-# Clean everything
+# Clean up
 .PHONY: clean
 clean:
-	rm -f *.o $(BINARIES)
-	rm -f pipes/extract_pipe pipes/temp_pipe_*
+	rm -f *.o $(SRCDIR)/*.o $(SHAREDDIR)/*.o
+	rm -rf $(BINDIR)
+	rm -f pipes/*
+	rm -f controller

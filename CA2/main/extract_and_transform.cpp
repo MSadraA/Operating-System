@@ -1,14 +1,7 @@
 #include "extractor.hpp"
 #include "transformer.hpp"
 #include "define.hpp"
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#include <vector>
-#include <iostream>
 
-using namespace std;
 
 const int PROC_NUM = 3;
 const vector<string> csv_files = {
@@ -17,11 +10,9 @@ const vector<string> csv_files = {
     "assets/steamdb3.csv"
 };
 
-const string FINAL_PIPE_PATH = "pipes/extract_pipe";
-
 int main() {
     //make named pipe
-    mkfifo(FINAL_PIPE_PATH.c_str(), 0666);
+    mkfifo(EXTRACT_PIPE_PATH.c_str(), 0666);
 
     int extract_pipes[PROC_NUM][2];
     int transformer_pipes[PROC_NUM][2];
@@ -64,7 +55,7 @@ int main() {
     }
 
     // write all data's in named pipe
-    int final_fd = open(FINAL_PIPE_PATH.c_str(), O_WRONLY);
+    int final_fd = open(EXTRACT_PIPE_PATH.c_str(), O_WRONLY);
     if (final_fd < 0) {
         perror("Failed to open final pipe");
         return 1;

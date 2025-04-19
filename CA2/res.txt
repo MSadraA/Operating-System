@@ -1,52 +1,76 @@
-g++ -Wall -Wextra -std=c++17 -c extract_and_transform.cpp -o extract_and_transform.o
-g++ -Wall -Wextra -std=c++17 -c extractor.cpp -o extractor.o
-g++ -Wall -Wextra -std=c++17 -c transformer.cpp -o transformer.o
-g++ -Wall -Wextra -std=c++17 -c shared_func.cpp -o shared_func.o
-g++ -Wall -Wextra -std=c++17 -o extract_and_transform extract_and_transform.o extractor.o transformer.o shared_func.o
-g++ -Wall -Wextra -std=c++17 -c check_pipe.cpp -o check_pipe.o
-g++ -Wall -Wextra -std=c++17 -o check_pipe check_pipe.o
-[+] Running extract_and_transform in background...
-./extract_and_transform &
-[+] Running check_pipe to read from pipe...
-./check_pipe
-Baldur's Gate 3,29.99,1,7,6,128900,188617
-Counter-Strike: Global Offensive,14.99,1,6,6,75284,7428921
-Apex Legends,1,1,3,6,18581,701597
-Forza Horizon 5,34.78,50,6,6,4120,123162
-Call of Duty,1,1,3,3,8257,236876
-PUBG: BATTLEGROUNDS,1,1,3,3,13945,2209987
-Remnant II,34.99,1,6,6,19384,3792
-Cyberpunk 2077,29.99,50.0167,6,6,5312,552224
-Rust,19.99,1,6,6,10393,781742
-NARAKA: BLADEPOINT,1,1,0,4,0,146529
-Grand Theft Auto V,33.98,25.0147,6,6,22946,1472644
-Tom Clancy's Rainbow Six Siege,10.99,1,6,6,11233,985871
-Dead by Daylight,12.59,1,6,6,5199,489916
-Team Fortress 2,10.49,1,6,6,13017,979063
-Dota 2,92.62,54.9989,4,6,20072,2030312
-War Thunder,1,1,3,4,7921,387917
-FINAL FANTASY XIV Online,10.49,1,6,6,712,62085
-The Elder Scrolls Online,19.99,1,4,6,1271,113584
-Warframe,1,1,6,6,3458,539603
-BattleBit Remastered,12.99,1,6,6,15985,72918
-Street Fighter 6,59.99,1,6,6,1885,13599
-Phasmophobia,7.99,1,6,7,11251,475199
-EA SPORTS FIFA 23,69.99,75.0107,3,3,5860,110345
-DAVE THE DIVER,10.49,1,7,7,10147,48657
-Destiny 2,1,1,3,6,4907,558640
-ELDEN RING,34.99,1,6,6,8066,524992
-Hearts of Iron IV,26.99,1,0,6,0,2846
-Yu-Gi-Oh! Master Duel,1,1,3,4,1223,63436
-Sons Of The Forest,14.49,1,6,6,3920,126694
-The Texas Chain Saw Massacre,18.49,10.0054,6,6,1834,1215
-Total War: WARHAMMER III,46.99,1,2,4,2492,54852
-World of Warships,51.88,29.9923,2,4,4639,127620
-PAYDAY 2,6.99,85.6938,6,6,3498,412663
-The Sims 4,1,1,6,6,3744,108840
-Forza Horizon 4,27.99,67.0239,6,6,2525,176232
-Red Dead Redemption 2,34.99,1,6,6,13910,404364
-Hunt: Showdown,21.9,1,4,6,2624,135353
-Football Manager 2023,39.99,60.015,6,6,676,11000
-Hogwarts Legacy,26.99,1,6,6,2497,154790
-Project Zomboid,10.49,1,6,6,6245,169738
-Ready or Not,24.99,1,6,6,2783,93693
+mkdir -p bin
+g++ -Wall -Wextra -std=c++17 -Ishared -Isrc -c src/extractor.cpp -o src/extractor.o
+g++ -Wall -Wextra -std=c++17 -Ishared -Isrc -c src/loader.cpp -o src/loader.o
+g++ -Wall -Wextra -std=c++17 -Ishared -Isrc -c src/transformer.cpp -o src/transformer.o
+g++ -Wall -Wextra -std=c++17 -Ishared -Isrc -c src/worker.cpp -o src/worker.o
+g++ -Wall -Wextra -std=c++17 -Ishared -Isrc -c shared/shared_func.cpp -o shared/shared_func.o
+[+] Building bin/controller
+g++ -Wall -Wextra -std=c++17 -Ishared -Isrc -o bin/controller main/controller.cpp src/extractor.o src/loader.o src/transformer.o src/worker.o shared/shared_func.o
+[+] Building bin/extract_and_transform
+g++ -Wall -Wextra -std=c++17 -Ishared -Isrc -o bin/extract_and_transform main/extract_and_transform.cpp src/extractor.o src/loader.o src/transformer.o src/worker.o shared/shared_func.o
+[+] Building bin/network_computing
+g++ -Wall -Wextra -std=c++17 -Ishared -Isrc -o bin/network_computing main/network_computing.cpp src/extractor.o src/loader.o src/transformer.o src/worker.o shared/shared_func.o
+[+] Building bin/read_and_dispatch
+g++ -Wall -Wextra -std=c++17 -Ishared -Isrc -o bin/read_and_dispatch main/read_and_dispatch.cpp src/extractor.o src/loader.o src/transformer.o src/worker.o shared/shared_func.o
+[+] Running controller...
+./bin/controller
+Worker 0 records: 
+Baldur's Gate 3 | 29.99 | 1 | 7 | 6 | 128900 | 188617
+Counter-Strike: Global Offensive | 14.99 | 1 | 6 | 6 | 75284 | 7428921
+Apex Legends | 1 | 1 | 3 | 6 | 18581 | 701597
+Forza Horizon 5 | 34.78 | 50 | 6 | 6 | 4120 | 123162
+Call of Duty | 1 | 1 | 3 | 3 | 8257 | 236876
+PUBG: BATTLEGROUNDS | 1 | 1 | 3 | 3 | 13945 | 2209987
+Remnant II | 34.99 | 1 | 6 | 6 | 19384 | 3792
+Cyberpunk 2077 | 29.99 | 50.0167 | 6 | 6 | 5312 | 552224
+Rust | 19.99 | 1 | 6 | 6 | 10393 | 781742
+Dystopy | 1 | 1 | 3 | 6 | 22 | 777
+Grand Theft Auto V | 33.98 | 25.0147 | 6 | 6 | 22946 | 1472644
+Tom Clancy's Rainbow Six Siege | 10.99 | 1 | 6 | 6 | 11233 | 985871
+Dead by Daylight | 12.59 | 1 | 6 | 6 | 5199 | 489916
+Team Fortress 2 | 10.49 | 1 | 6 | 6 | 13017 | 979063
+Worker 0 max record: 
+ | 92.62 | 85.6938 | 7 | 7 | 128900 | 7428921
+Worker 0 min record: 
+ | 1 | 1 | 1 | 3 | 22 | 134
+
+Worker 1 records: 
+Dota 2 | 92.62 | 54.9989 | 4 | 6 | 20072 | 2030312
+War Thunder | 1 | 1 | 3 | 4 | 7921 | 387917
+FINAL FANTASY XIV Online | 10.49 | 1 | 6 | 6 | 712 | 62085
+The Elder Scrolls Online | 19.99 | 1 | 4 | 6 | 1271 | 113584
+Warframe | 1 | 1 | 6 | 6 | 3458 | 539603
+BattleBit Remastered | 12.99 | 1 | 6 | 6 | 15985 | 72918
+Street Fighter 6 | 59.99 | 1 | 6 | 6 | 1885 | 13599
+Phasmophobia | 7.99 | 1 | 6 | 7 | 11251 | 475199
+EA SPORTS FIFA 23 | 69.99 | 75.0107 | 3 | 3 | 5860 | 110345
+DAVE THE DIVER | 10.49 | 1 | 7 | 7 | 10147 | 48657
+Destiny 2 | 1 | 1 | 3 | 6 | 4907 | 558640
+ELDEN RING | 34.99 | 1 | 6 | 6 | 8066 | 524992
+Echo Point Nova | 1 | 1 | 1 | 6 | 138 | 134
+Yu-Gi-Oh! Master Duel | 1 | 1 | 3 | 4 | 1223 | 63436
+Worker 1 max record: 
+ | 92.62 | 85.6938 | 7 | 7 | 128900 | 7428921
+Worker 1 min record: 
+ | 1 | 1 | 1 | 3 | 22 | 134
+
+Worker 2 records: 
+Sons Of The Forest | 14.49 | 1 | 6 | 6 | 3920 | 126694
+The Texas Chain Saw Massacre | 18.49 | 10.0054 | 6 | 6 | 1834 | 1215
+Total War: WARHAMMER III | 46.99 | 1 | 2 | 4 | 2492 | 54852
+World of Warships | 51.88 | 29.9923 | 2 | 4 | 4639 | 127620
+PAYDAY 2 | 6.99 | 85.6938 | 6 | 6 | 3498 | 412663
+The Sims 4 | 1 | 1 | 6 | 6 | 3744 | 108840
+Forza Horizon 4 | 27.99 | 67.0239 | 6 | 6 | 2525 | 176232
+Red Dead Redemption 2 | 34.99 | 1 | 6 | 6 | 13910 | 404364
+Hunt: Showdown | 21.9 | 1 | 4 | 6 | 2624 | 135353
+Football Manager 2023 | 39.99 | 60.015 | 6 | 6 | 676 | 11000
+Hogwarts Legacy | 26.99 | 1 | 6 | 6 | 2497 | 154790
+Project Zomboid | 10.49 | 1 | 6 | 6 | 6245 | 169738
+Ready or Not | 24.99 | 1 | 6 | 6 | 2783 | 93693
+Worker 2 max record: 
+ | 92.62 | 85.6938 | 7 | 7 | 128900 | 7428921
+Worker 2 min record: 
+ | 1 | 1 | 1 | 3 | 22 | 134
+
+rm src/transformer.o src/extractor.o shared/shared_func.o src/worker.o src/loader.o

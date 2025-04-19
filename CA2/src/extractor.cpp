@@ -20,9 +20,13 @@ void Extractor::read_csv_write() {
     string line;
     getline(file, line); // skip header
 
-    while (std::getline(file, line)) {
+    while (getline(file, line)) {
         line += "\n";
         write(output_fd, line.c_str(), line.size());
+    }
+
+    if (write(output_fd, line.c_str(), line.size()) == -1) {
+        perror("failed to write to output");
     }
     close(output_fd);
 }

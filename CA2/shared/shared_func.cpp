@@ -3,7 +3,7 @@
 
 
 string to_string(const GameRecord& record) { 
-    std::ostringstream oss; 
+    ostringstream oss; 
     oss << record.title << DELIM; 
     oss << record.original_price << DELIM; 
     oss << record.discount_percent << DELIM; 
@@ -14,11 +14,11 @@ string to_string(const GameRecord& record) {
     return oss.str(); 
 }
 
-GameRecord from_string(const std::string& line) { 
-    std::stringstream ss(line); 
-    std::string token; 
-    std::vector<std::string> fields; 
-    while (std::getline(ss, token, DELIM)) { 
+GameRecord from_string(const string& line) { 
+    stringstream ss(line); 
+    string token; 
+    vector<string> fields; 
+    while (getline(ss, token, DELIM)) { 
         fields.push_back(token); 
     } 
     GameRecord record; 
@@ -32,12 +32,12 @@ GameRecord from_string(const std::string& line) {
     return record;
 }
 
-vector<string> split_line(const string& line) {
+vector<string> split_line(const string& line , char delim) {
     vector<string> columns;
     stringstream ss(line);
     string token;
 
-    while (getline(ss, token, DELIM)) {
+    while (getline(ss, token, delim)) {
         columns.push_back(trim(token));
     }
     return columns;
@@ -64,4 +64,29 @@ void print_record(const GameRecord& record) {
          << record.all_review_summary << " | "
          << record.recent_review_number << " | "
          << record.all_review_number << endl;
+}
+
+string worker_to_string(const WorkerInfo& worker) {
+    ostringstream oss;
+    oss << worker.id << DELIM;
+    oss << worker.pid;
+    return oss.str();
+}
+
+WorkerInfo string_to_worker(const string& line) {
+    stringstream ss(line);
+    string token;
+    vector<string> fields;
+    while (getline(ss, token, DELIM)) {
+        fields.push_back(token);
+    }
+    WorkerInfo worker;
+    worker.id = stoi(fields[0]);
+    worker.pid = stoi(fields[1]);
+    return worker;
+}
+
+void print_worker(const WorkerInfo& worker){
+    cout << worker.id << " | "
+         << worker.pid << endl;
 }
