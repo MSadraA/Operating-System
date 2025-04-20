@@ -38,7 +38,7 @@ void Loader::run() {
     read_from_pipe();
     fill_extreme_records();
     read_registered_workers();
-    // make_worker_pipes();
+    show_cpu_usage();
     dispatch_records_to_workers();
 }
 
