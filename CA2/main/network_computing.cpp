@@ -3,8 +3,12 @@
 #include "worker.hpp"
 
 
-int main() {
-    int worker_num = 3;
+int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        cerr << "Usage: " << argv[0] << " <worker_num>\n";
+        return 1;
+    }
+    int worker_num = stoi(argv[1]);
 
     int network_pipe[worker_num][2];
     vector<pid_t> children;

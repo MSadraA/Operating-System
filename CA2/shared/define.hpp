@@ -77,6 +77,8 @@ const string EXTRACT_PIPE_PATH = "pipes/extract_pipe";
 const string REGISTER_PIPE_PATH = "pipes/register_pipe";
 const string WORKER_PIPE_PATH = "pipes/worker_pipe_";
 const string FINAL_RES_PIPE_PATH = "pipes/final_res_pipe";
+
+const string INPUT_FILE = "assets/steamdb";
 const string OUTPUT_FILE = "GameRanking.csv";
 const int DELAY = 100000; // 100 ms;
 

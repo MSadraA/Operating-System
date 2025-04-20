@@ -3,19 +3,19 @@
 #include "define.hpp"
 
 
-const int PROC_NUM = 3;
-const vector<string> csv_files = {
-    "assets/steamdb1.csv",
-    "assets/steamdb2.csv",
-    "assets/steamdb3.csv"
-};
+int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        cerr << "Usage: " << argv[0] << " <files_num>\n";
+        return 1;
+    }
+    int files_num = stoi(argv[1]);
 
-int main() {
-    int extract_pipes[PROC_NUM][2];
-    int transformer_pipes[PROC_NUM][2];
+    int extract_pipes[files_num][2];
+    int transformer_pipes[files_num][2];
     vector<pid_t> children;
 
-    for (int i = 0; i < PROC_NUM; ++i) {
+    for (int i = 0; i < files_num; ++i) {
+        string csv_file = INPUT_FILE + to_string(i+1) + ".csv";
         pipe(extract_pipes[i]);
         pipe(transformer_pipes[i]);
 
@@ -25,7 +25,7 @@ int main() {
             close(extract_pipes[i][0]); // write only
             close(transformer_pipes[i][0]);
             close(transformer_pipes[i][1]);
-            Extractor extractor(csv_files[i], extract_pipes[i][1]);
+            Extractor extractor(csv_file, extract_pipes[i][1]);
             extractor.run();
             exit(0);
         }
@@ -45,7 +45,7 @@ int main() {
         children.push_back(pid2);
     }
 
-    for(int i = 0 ; i < PROC_NUM ; i++){
+    for(int i = 0 ; i < files_num ; i++){
         close(extract_pipes[i][0]);
         close(extract_pipes[i][1]);
         close(transformer_pipes[i][1]);
@@ -58,7 +58,7 @@ int main() {
         return 1;
     }
 
-    for (int i = 0; i < PROC_NUM; ++i) {
+    for (int i = 0; i < files_num; ++i) {
         char buffer[BUFF_SIZE];
         ssize_t bytes_read;
         while ((bytes_read = read(transformer_pipes[i][0], buffer, sizeof(buffer))) > 0) {

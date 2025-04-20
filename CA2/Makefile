@@ -29,16 +29,15 @@ $(BINDIR)/%: $(MAINDIR)/%.cpp $(OBJ)
 	@echo "[+] Building $@"
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
-# Object files
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+# Get the CLI args after `run`
+WORKER_NUM := $(word 2, $(MAKECMDGOALS))
+FILE_NUM := $(word 3, $(MAKECMDGOALS))
 
-# Run controller as default executable
+# Run controller
 .PHONY: run
 run: all
-	@echo "[+] Running controller..."
-	./$(BINDIR)/controller
-
+	@echo "[+] Running controller with worker_num=$(WORKER_NUM), file_num=$(FILE_NUM)"
+	./$(BINDIR)/controller $(WORKER_NUM) $(FILE_NUM)
 
 # Clean up
 .PHONY: clean
@@ -47,3 +46,7 @@ clean:
 	rm -rf $(BINDIR)
 	rm -f pipes/*
 	rm -f controller
+
+# Prevent errors when running `make run 3 5` due to unknown goals
+%:
+	@:
