@@ -13,6 +13,9 @@
 #include <atomic>
 #include <unistd.h>
 
+#include <semaphore.h>
+
+
 
 using namespace std;
 
@@ -34,18 +37,91 @@ using namespace std;
 
 #define SLEEP_TIME 10000 // sleep time in microseconds for the worker threads
 
-enum class TaskPriority {
-        LOW,
-        MEDIUM,
-        HIGH
-    };
+typedef struct Output_Node Output_Node;
+typedef struct Hidden_Node Hidden_Node;
+typedef struct MNIST_ImageFileHeader MNIST_ImageFileHeader;
+typedef struct MNIST_LabelFileHeader MNIST_LabelFileHeader;
+
+typedef struct MNIST_Image MNIST_Image;
+typedef uint8_t MNIST_Label;
+
+
+struct Hidden_Node{
+    double weights[28*28];
+    double bias;
+    double output;
+};
+
+struct Output_Node{
+    double weights[256];
+    double bias;
+    double output;
+};
+
+struct HiddenTask {
+    std::vector<double> input;
+    int label;
+};
+
+
+/**
+ * @brief Data block defining a MNIST image
+ * @see http://yann.lecun.com/exdb/mnist/ for details
+ */
+
+struct MNIST_Image{
+    uint8_t pixel[28*28];
+};
+
+/**
+ * @brief Data block defining a MNIST image file header
+ * @attention The fields in this structure are not used.
+ * What matters is their byte size to move the file pointer
+ * to the first image.
+ * @see http://yann.lecun.com/exdb/mnist/ for details
+ */
+
+struct MNIST_ImageFileHeader{
+    uint32_t magicNumber;
+    uint32_t maxImages;
+    uint32_t imgWidth;
+    uint32_t imgHeight;
+};
+
+/**
+ * @brief Data block defining a MNIST label file header
+ * @attention The fields in this structure are not used.
+ * What matters is their byte size to move the file pointer
+ * to the first label.
+ * @see http://yann.lecun.com/exdb/mnist/ for details
+ */
+
+struct MNIST_LabelFileHeader{
+    uint32_t magicNumber;
+    uint32_t maxImages;
+};
+
+vector<Hidden_Node> hidden_nodes(NUMBER_OF_HIDDEN_CELLS);
+vector<Output_Node> output_nodes(NUMBER_OF_OUTPUT_CELLS);
+
+/**
+ * @details Set cursor position to given coordinates in the terminal window
+ */
+
+
+enum class ThreadPriorityLevel {
+    LOW = 0,       // InputLayer
+    MEDIUM = 1,    // HiddenLayer
+    HIGH = 2       // OutputLayer
+};
     
-struct PrioritizedTask {
+struct Task {
     void (*function)(void*);
     void* arg;               
-    TaskPriority priority;
+};
 
-    bool operator<(const PrioritizedTask& other) const {
-        return static_cast<int>(priority) < static_cast<int>(other.priority);
-    }
+struct LayerData {
+    std::vector<double> values;
+    int label;
+    sem_t* backSemaphore;
 };

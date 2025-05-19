@@ -5,34 +5,42 @@
 
 
 class ThreadPool {
-    private:
-        static void* worker_wrapper(void* arg);
-        void worker_thread();
+public:
+    ThreadPool(size_t min_threads, size_t max_threads, ThreadPriorityLevel thread_priority);
+    ~ThreadPool();
 
-        static void* monitor_wrapper(void* arg);
-        void monitor_thread();
+    // افزودن یک وظیفه به صف
+    void enqueueTask(void (*func)(void*), void* arg);
 
-        vector<pthread_t> workers;
-        pthread_t monitor;
-    
-        priority_queue<PrioritizedTask> tasks;
-    
-        pthread_mutex_t queue_mutex;
-        pthread_cond_t condition;
-    
-        size_t min_threads;
-        size_t max_threads;
-        atomic<bool> stop;
-        atomic<size_t> active_threads;
+    // توقف کامل
+    void shutdown();
 
-    public:
-        ThreadPool(size_t min_threads, size_t max_threads);
-        ~ThreadPool();
+    // بررسی خالی بودن صف وظایف
+    bool isIdle();
 
-        void enqueueTask(void (*func)(void*), void* arg, TaskPriority priority = TaskPriority::MEDIUM);
+private:
+    static void* workerWrapper(void* arg);
+    void workerThread();
 
-        void shutdown();
+    static void* monitorWrapper(void* arg);
+    void monitorThread();
 
-        bool isIdle();
+    void setThreadPriority(pthread_t thread);
+
+    std::vector<pthread_t> workers;
+    pthread_t monitor;
+
+    std::queue<Task> tasks;
+
+    pthread_mutex_t queue_mutex;
+    pthread_cond_t condition;
+
+    size_t min_threads;
+    size_t max_threads;
+    std::atomic<bool> stop;
+    std::atomic<size_t> active_threads;
+
+    ThreadPriorityLevel thread_priority_level;
 };
+
 #endif
