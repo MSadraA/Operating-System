@@ -9,13 +9,10 @@ public:
     ThreadPool(size_t min_threads, size_t max_threads, ThreadPriorityLevel thread_priority);
     ~ThreadPool();
 
-    // افزودن یک وظیفه به صف
     void enqueueTask(void (*func)(void*), void* arg);
 
-    // توقف کامل
     void shutdown();
 
-    // بررسی خالی بودن صف وظایف
     bool isIdle();
 
 private:

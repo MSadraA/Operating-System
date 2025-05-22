@@ -1,6 +1,10 @@
 #include "define.hpp"
 #include "shared_functions.hpp"
 
+
+vector<Hidden_Node> hidden_nodes(NUMBER_OF_HIDDEN_CELLS);
+vector<Output_Node> output_nodes(NUMBER_OF_OUTPUT_CELLS);
+
 void locateCursor(const int row, const int col){
     printf("%c[%d;%dH",27,row,col);
 }
@@ -109,7 +113,6 @@ void allocateHiddenParameters(){
         bidx++;
     }
     biases.close();
-
 }
 
 /**
@@ -168,7 +171,7 @@ int getNNPrediction(){
  * 10k images.
  */
 
-void testNN(){
+void testNN(int imageCount){
         // open MNIST files
     FILE *imageFile, *labelFile;
     imageFile = openMNISTImageFile(MNIST_TESTING_SET_IMAGE_FILE_NAME);
@@ -176,22 +179,20 @@ void testNN(){
 
 
     // screen output for monitoring progress
-    displayImageFrame(7,5);
+    // displayImageFrame(7,5);
 
     // number of incorrect predictions
     int errCount = 0;
+    int curCount = 0;
 
 
     // Loop through all images in the file
-    for (int imgCount=0; imgCount<MNIST_MAX_TESTING_IMAGES; imgCount++){
-        // display progress
-        displayLoadingProgressTesting(imgCount,5,5);
+    for (int imgCount=0; imgCount< imageCount; imgCount++){
 
         // Reading next image and corresponding label
         MNIST_Image img = getImage(imageFile);
         MNIST_Label lbl = getLabel(labelFile);
 
-        displayImage(&img, 8,6);
 
         // loop through all output cells for the given image
         for (int i= 0; i < NUMBER_OF_OUTPUT_CELLS; i++){
@@ -205,15 +206,16 @@ void testNN(){
                 hidden_nodes[j].output = (hidden_nodes[j].output >= 0) ?  hidden_nodes[j].output : 0;
                 output_nodes[i].output += hidden_nodes[j].output * output_nodes[i].weights[j];
             }
+            
             output_nodes[i].output += 1/(1+ exp(-1* output_nodes[i].output));
-        }
+        }        
+        
 
         int predictedNum = getNNPrediction();
         if (predictedNum!=lbl) errCount++;
+        else curCount++;
 
-        printf("\n      Prediction: %d   Actual: %d ",predictedNum, lbl);
-
-        displayProgress(imgCount, errCount, 5, 66);
+        displayLiveProgress(3, predictedNum, lbl, curCount, imgCount + 1, "Serial");
 
     }
 
@@ -225,26 +227,19 @@ void testNN(){
 
 int main(int argc, const char * argv[]) {
 
-    // remember the time in order to calculate processing time at the end
-    time_t startTime = time(NULL);
+        if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <images_count>\n";
+        return 1;
+    }
 
-    // clear screen of terminal window
-    clearScreen();
-    printf("    MNIST-NN: a simple 2-layer neural network processing the MNIST handwriting images\n");
+    int imageCount = std::stoi(argv[1]);
 
     // alocating respective parameters to hidden and output layer cells
     allocateHiddenParameters();
     allocateOutputParameters();
 
     //test the neural network
-    testNN();
-
-    locateCursor(38, 5);
-
-    // calculate and print the program's total execution time
-    time_t endTime = time(NULL);
-    double executionTime = difftime(endTime, startTime);
-    printf("\n    DONE! Total execution time: %.1f sec\n\n",executionTime);
+    testNN(imageCount);
 
     return 0;
 }

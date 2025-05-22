@@ -1,3 +1,7 @@
+#ifndef DEFINE_HPP
+#define DEFINE_HPP
+
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,6 +22,8 @@
 
 
 using namespace std;
+
+#define TIME_FOR_MONITORING 1000000 // 1 second
 
 #define MNIST_TESTING_SET_IMAGE_FILE_NAME "data/t10k-images-idx3-ubyte"
 #define MNIST_TESTING_SET_LABEL_FILE_NAME "data/t10k-labels-idx1-ubyte"
@@ -101,12 +107,6 @@ struct MNIST_LabelFileHeader{
     uint32_t maxImages;
 };
 
-vector<Hidden_Node> hidden_nodes(NUMBER_OF_HIDDEN_CELLS);
-vector<Output_Node> output_nodes(NUMBER_OF_OUTPUT_CELLS);
-
-/**
- * @details Set cursor position to given coordinates in the terminal window
- */
 
 
 enum class ThreadPriorityLevel {
@@ -123,5 +123,7 @@ struct Task {
 struct LayerData {
     std::vector<double> values;
     int label;
-    sem_t* backSemaphore;
 };
+
+
+#endif

@@ -1,4 +1,5 @@
 #include "shared_functions.hpp"
+#include <iomanip>
 
 FILE *openMNISTImageFile(const char *fileName){
 

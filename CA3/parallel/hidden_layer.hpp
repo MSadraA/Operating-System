@@ -7,26 +7,23 @@
 #include "threadpool.hpp"
 
 
-struct HiddenNeuron {
-    std::vector<double> weights;
-    double bias;
-};
-
 class HiddenLayer : public Layer {
 private:
-    int neuronCount;
-    int inputSize;
-    std::vector<HiddenNeuron> neurons;
-    pthread_t thread;
+    string hiddenWeightsFile = HIDDEN_WEIGHTS_FILE;
+    string hiddenBiasesFile = HIDDEN_BIASES_FILE;
+    std::vector<Hidden_Node> hidden_nodes;
+    int dataPerThread;
+
+    static void* processLoop(void* arg);
+    void handleInput(LayerData data);
+    static void computeTask(void* arg);
+    void allocateHiddenParameters(string weightsFile, string biasesFile);
 
 public:
-    HiddenLayer(ThreadPool* pool, int numNeurons, int inputDim);
-    void loadParams(const std::string& weightsFile, const std::string& biasFile);
+    HiddenLayer(ThreadPool* pool, int neuronCount, int threadCount , string weightsFile, string biasesFile);
+    ~HiddenLayer();
     void start() override;
-
-protected:
-    void processLoop() override;
-    void computeRange(int startIdx, int endIdx, const std::vector<double>& input, std::vector<double>& result);
 };
+
 
 #endif

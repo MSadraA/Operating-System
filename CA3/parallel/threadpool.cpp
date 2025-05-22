@@ -103,7 +103,7 @@ void* ThreadPool::monitorWrapper(void* arg) {
 
 void ThreadPool::monitorThread() {
     while (!stop) {
-        usleep(100000);
+        usleep(TIME_FOR_MONITORING);
 
         pthread_mutex_lock(&queue_mutex);
         size_t queue_size = tasks.size();

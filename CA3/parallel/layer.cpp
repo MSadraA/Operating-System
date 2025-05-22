@@ -1,6 +1,6 @@
 #include "layer.hpp"
 
-Layer::Layer(ThreadPool* pool) : nextLayer(nullptr), threadPool(pool) {
+Layer::Layer(ThreadPool* pool , int threadCount) : nextLayer(nullptr), threadPool(pool), threadCount(threadCount) {
     pthread_mutex_init(&queueMutex, nullptr);
     sem_init(&dataAvailable, 0, 0);
 }
@@ -21,11 +21,9 @@ void Layer::enqueueInput(const LayerData& data) {
     sem_post(&dataAvailable);
 }
 
-void Layer::setPrevSemaphore(sem_t* sem) {
-    prevSemaphore = sem;
+bool Layer::isQueueEmpty() {
+    pthread_mutex_lock(&queueMutex);
+    bool result = inputQueue.empty();
+    pthread_mutex_unlock(&queueMutex);
+    return result;
 }
-
-sem_t* Layer::getPermitSemaphore() {
-    return prevSemaphore;
-}
-

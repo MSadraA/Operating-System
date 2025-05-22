@@ -3,73 +3,114 @@
 
 struct HiddenTaskArgs {
     HiddenLayer* layer;
-    int start, end;
-    std::vector<double>* input;
+    const LayerData* input;
     std::vector<double>* output;
+    int start;
+    int end;
+    std::atomic<int>* doneCount;
+    int totalThreads;
 };
 
 
-HiddenLayer::HiddenLayer(ThreadPool* pool, int numNeurons, int inputDim)
-    : Layer(pool), neuronCount(numNeurons), inputSize(inputDim) {
-    neurons.resize(neuronCount);
-    for (auto& neuron : neurons)
-        neuron.weights.resize(inputSize);
+HiddenLayer::HiddenLayer(ThreadPool* pool, int neuronCount, int threadCount , string weightsFile, string biasesFile)
+    : Layer(pool, threadCount) , hiddenWeightsFile(weightsFile), hiddenBiasesFile(biasesFile) {
+    hidden_nodes.resize(neuronCount);
+    allocateHiddenParameters(weightsFile, biasesFile);
+    dataPerThread = neuronCount / threadCount;
 }
 
-void HiddenLayer::loadParams(const std::string& weightsFile, const std::string& biasFile) {
-    std::ifstream wfile(weightsFile), bfile(biasFile);
-    for (int i = 0; i < neuronCount; ++i) {
-        for (int j = 0; j < inputSize; ++j) {
-            wfile >> neurons[i].weights[j];
-        }
-        bfile >> neurons[i].bias;
+HiddenLayer::~HiddenLayer() {
+    sem_destroy(&dataAvailable);
+
+    pthread_mutex_lock(&queueMutex);
+    while (!inputQueue.empty()) {
+        inputQueue.pop();
     }
+    pthread_mutex_unlock(&queueMutex);
 }
 
 void HiddenLayer::start() {
-    pthread_create(&thread, nullptr, [](void* arg) -> void* {
-        static_cast<HiddenLayer*>(arg)->processLoop();
-        return nullptr;
-    }, this);
+    pthread_t thread;
+    pthread_create(&thread, nullptr, HiddenLayer::processLoop, this);
 }
 
-void HiddenLayer::processLoop() {
+void* HiddenLayer::processLoop(void* arg) {
+    auto* layer = static_cast<HiddenLayer*>(arg);
     while (true) {
-        sem_wait(&dataAvailable);
+        sem_wait(&layer->dataAvailable);
 
-        pthread_mutex_lock(&queueMutex);
-        if (inputQueue.empty()) {
-            pthread_mutex_unlock(&queueMutex);
+        pthread_mutex_lock(&layer->queueMutex);
+        if (layer->inputQueue.empty()) {
+            pthread_mutex_unlock(&layer->queueMutex);
             continue;
         }
-        LayerData task = inputQueue.front();
-        inputQueue.pop();
-        pthread_mutex_unlock(&queueMutex);
+        LayerData* task = new LayerData(layer->inputQueue.front());
+        layer->inputQueue.pop();
 
-        std::vector<double> result(neuronCount);
-        int workers = 8;
-        int chunk = neuronCount / workers;
+        pthread_mutex_unlock(&layer->queueMutex);
 
-        for (int i = 0; i < workers; ++i) {
+        auto output = new std::vector<double>(layer->hidden_nodes.size());
+        auto* doneCount = new std::atomic<int>(0);
+
+        int total = layer->hidden_nodes.size();
+        int chunk = (total + layer->threadCount - 1) / layer->threadCount;
+
+
+        for (int i = 0; i < layer->threadCount; ++i) {
             int start = i * chunk;
-            int end = (i == workers - 1) ? neuronCount : start + chunk;
-            auto* args = new HiddenTaskArgs{this, start, end, &task.values, &result};
-            threadPool->enqueueTask([](void* arg) {
-                auto* args = static_cast<HiddenTaskArgs*>(arg);
-                args->layer->computeRange(args->start, args->end, *args->input, *args->output);
-                delete args;
-            }, args);
+            int end = std::min(total, start + chunk);
+            auto* args = new HiddenTaskArgs{layer, task, output, start, end, doneCount, layer->threadCount};
+            layer->threadPool->enqueueTask(HiddenLayer::computeTask, args);
         }
-        if (task.backSemaphore)
-            sem_post(task.backSemaphore);
     }
+    return nullptr;
 }
 
-void HiddenLayer::computeRange(int startIdx, int endIdx, const std::vector<double>& input, std::vector<double>& result) {
-    for (int i = startIdx; i < endIdx; ++i) {
-        double sum = neurons[i].bias;
-        for (int j = 0; j < inputSize; ++j)
-            sum += neurons[i].weights[j] * input[j];
-        result[i] = std::max(0.0, sum); // ReLU
+void HiddenLayer::computeTask(void* arg) {
+    auto* args = static_cast<HiddenTaskArgs*>(arg);
+    for (int i = args->start; i < args->end; ++i) {
+        double sum = args->layer->hidden_nodes[i].bias;
+        for (size_t j = 0; j < args->input->values.size(); ++j) {
+            sum += args->input->values[j] * args->layer->hidden_nodes[i].weights[j];
+        }
+        args->layer->hidden_nodes[i].output = std::max(0.0, sum);
+        (*args->output)[i] = args->layer->hidden_nodes[i].output;
     }
+
+    if (++(*args->doneCount) == args->totalThreads) {
+        LayerData out;
+        out.values = *args->output;
+        out.label = args->input->label;
+        if(args->layer->nextLayer != nullptr) {
+            args->layer->nextLayer->enqueueInput(out);
+        }
+        delete args->output;
+        delete args->doneCount;
+        delete args->input;
+    }
+    delete args;
+}
+
+void HiddenLayer::allocateHiddenParameters(string weightsFile, string biasesFile) {
+    size_t idx = 0;
+    size_t bidx = 0;
+
+
+    std::ifstream weights(weightsFile);
+    for (std::string line; getline(weights, line) && idx < hidden_nodes.size(); ) {
+        std::stringstream in(line);
+        for (int i = 0; i < 28 * 28; ++i) {
+            in >> hidden_nodes[idx].weights[i];
+        }
+        idx++;
+    }
+    weights.close();
+
+    std::ifstream biases(biasesFile);
+    for (std::string line; getline(biases, line) && bidx < hidden_nodes.size(); ) {
+        std::stringstream in(line);
+        in >> hidden_nodes[bidx].bias;
+        bidx++;
+    }
+    biases.close();
 }

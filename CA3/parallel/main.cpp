@@ -1,25 +1,30 @@
 #include "input_layer.hpp"
 #include "hidden_layer.hpp"
 #include "threadpool.hpp"
+#include "output_layer.hpp"
+#include "result_layer.hpp"
+#include "controller.hpp"
 #include <iostream>
 #include <unistd.h>
 
-int main() {
-ThreadPool pool(8, 8, ThreadPriorityLevel::MEDIUM);
 
-// 2. ایجاد لایه پنهان
-HiddenLayer hidden(&pool, 256 , 28 * 28); // مثلاً 256 نورون
-hidden.loadParams(HIDDEN_WEIGHTS_FILE, HIDDEN_BIASES_FILE);
+int main(int argc, char* argv[]) {
+    if (argc != 4) {
+        std::cerr << "Usage: " << argv[0] << " <hidden_layer_count> <neurons_per_hidden_layer> <images_count>\n";
+        return 1;
+    }
 
-// 3. ایجاد لایه ورودی و اتصالش به لایه پنهان
-InputLayer input(&pool, MNIST_TESTING_SET_IMAGE_FILE_NAME, MNIST_TESTING_SET_LABEL_FILE_NAME, 2); // فقط 2 تصویر
-input.setNextLayer(&hidden);
-hidden.setPrevSemaphore(input.getPermitSemaphore());
+    int hiddenLayerCount = std::stoi(argv[1]);
+    int neuronsPerLayer = std::stoi(argv[2]);
+    int imagesCount = std::stoi(argv[3]);
 
-// 4. راه‌اندازی لایه‌ها
-hidden.start(); // ترد داخلی خودش
-input.start();  // ترد داخلی خودش
+    if (hiddenLayerCount <= 0 || neuronsPerLayer <= 0 || imagesCount <= 0) {
+        std::cerr << "Both arguments must be positive integers.\n";
+        return 1;
+    }
 
-return 0;
+    Controller controller(hiddenLayerCount, neuronsPerLayer, imagesCount);
+    controller.run();
 }
+
 

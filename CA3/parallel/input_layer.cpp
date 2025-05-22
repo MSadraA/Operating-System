@@ -1,43 +1,69 @@
 #include "input_layer.hpp"
 
 
-InputLayer::InputLayer(ThreadPool* pool, const std::string& imagePath, const std::string& labelPath, int maxImg)
-    : Layer(pool), maxImages(maxImg) {
-    imageFile = openMNISTImageFile(imagePath.c_str());
-    labelFile = openMNISTLabelFile(labelPath.c_str());
-    sem_init(&imagePermit, 0, 1);
+InputLayer::InputLayer(ThreadPool* pool, const std::string& imagePath, const std::string& labelPath, int totalImages)
+    : Layer(pool, 1), currentImage(0), imageCount(totalImages) {
+    imageFile = fopen(imagePath.c_str(), "rb");
+    if (!imageFile) {
+        std::cerr << "Failed to open image file\n";
+        exit(1);
+    }
+    readImageFileHeader(imageFile, &imageHeader);
+
+    labelFile = fopen(labelPath.c_str(), "rb");
+    if (!labelFile) {
+        std::cerr << "Failed to open label file\n";
+        exit(1);
+    }
+    readLabelFileHeader(labelFile, &labelHeader);
 }
 
 InputLayer::~InputLayer() {
-    fclose(imageFile);
-    fclose(labelFile);
-    sem_destroy(&imagePermit);
+    if (imageFile) fclose(imageFile);
+    if (labelFile) fclose(labelFile);
 }
 
 void InputLayer::start() {
-    pthread_create(&thread, nullptr, [](void* arg) -> void* {
-        static_cast<InputLayer*>(arg)->processLoop();
-        return nullptr;
+    threadPool->enqueueTask([](void* arg) {
+        static_cast<InputLayer*>(arg)->readAndDispatchImage();
     }, this);
 }
 
-void InputLayer::processLoop() {
-    for (int i = 0; i < maxImages; ++i) {
-        sem_wait(&imagePermit);
+bool InputLayer::isFinished() {
+    return isFinish;
+}
 
-        MNIST_Image img = getImage(imageFile);
-        MNIST_Label lbl = getLabel(labelFile);
+void InputLayer::readAndDispatchImage() {
+    while (currentImage < imageCount) {
+        MNIST_Image img;
+        size_t result = fread(&img, sizeof(MNIST_Image), 1, imageFile);
+        if (result != 1) {
+            std::cerr << "Failed to read image at index " << currentImage << std::endl;
+            break;
+        }
 
-        std::vector<double> pixels(28 * 28);
-        for (int j = 0; j < 28 * 28; ++j)
-            pixels[j] = static_cast<double>(img.pixel[j]) / 255.0;
+        MNIST_Label lbl;
+        result = fread(&lbl, sizeof(MNIST_Label), 1, labelFile);
+        if (result != 1) {
+            std::cerr << "Failed to read label at index " << currentImage << std::endl;
+            break;
+        }
+
+        std::vector<double> raw_input;
+        raw_input.reserve(28 * 28);
+        for (int i = 0; i < 28 * 28; ++i) {
+            raw_input.push_back(static_cast<double>(img.pixel[i]));
+        }
 
         LayerData data;
-        data.values = std::move(pixels);
+        data.values = raw_input;
         data.label = lbl;
-        data.backSemaphore = &imagePermit;
 
-        if (nextLayer)
-            nextLayer->enqueueInput(data);
+        nextLayer->enqueueInput(data);
+
+        ++currentImage;
     }
+
+    isFinish = true;
 }
+
